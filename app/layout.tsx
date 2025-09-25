@@ -17,7 +17,12 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "HR 評估系統",
   description: "專業的員工能力測評平台",
-    generator: 'v0.app'
+  generator: 'v0.app',
+  icons: {
+    icon: '/solution.png',
+    shortcut: '/solution.png',
+    apple: '/solution.png',
+  },
 }
 
 export default function RootLayout({

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Brain, Lightbulb, BarChart3, Users, Settings, Menu, ChevronDown } from "lucide-react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import Link from "next/link"
+import Image from "next/image"
 import { useAuth } from "@/lib/hooks/use-auth"
 import { useRouter } from "next/navigation"
 import { ProtectedRoute } from "@/components/protected-route"
@@ -49,9 +50,9 @@ export default function HomePage() {
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                  <Users className="w-6 h-6 text-primary-foreground" />
-                </div>
+              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                <Users className="w-6 h-6 text-primary-foreground" />
+              </div>
                 <div>
                   <h1 className="text-xl font-bold text-foreground">HR 評估系統</h1>
                   <p className="text-sm text-muted-foreground">員工能力測評平台</p>
@@ -368,8 +369,14 @@ export default function HomePage() {
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               {/* 左側內容 */}
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                  <Users className="w-4 h-4 text-primary-foreground" />
+                <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
+                  <Image 
+                    src="/solution.png" 
+                    alt="HR 評估系統 Logo" 
+                    width={32} 
+                    height={32} 
+                    className="object-contain"
+                  />
                 </div>
                 <div>
                   <span className="text-lg font-semibold">HR 評估系統</span>
