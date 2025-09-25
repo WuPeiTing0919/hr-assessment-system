@@ -1,0 +1,316 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { TestLayout } from "@/components/test-layout"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Label } from "@/components/ui/label"
+import { Progress } from "@/components/ui/progress"
+import { useRouter } from "next/navigation"
+import { logicQuestions } from "@/lib/questions/logic-questions"
+import { creativeQuestions } from "@/lib/questions/creative-questions"
+import { calculateCombinedScore } from "@/lib/utils/score-calculator"
+
+type TestPhase = "logic" | "creative" | "completed"
+
+export default function CombinedTestPage() {
+  const router = useRouter()
+  const [phase, setPhase] = useState<TestPhase>("logic")
+  const [currentQuestion, setCurrentQuestion] = useState(0)
+  const [logicAnswers, setLogicAnswers] = useState<Record<number, string>>({})
+  const [creativeAnswers, setCreativeAnswers] = useState<Record<number, number>>({})
+  const [timeRemaining, setTimeRemaining] = useState(45 * 60) // 45 minutes total
+
+  // Timer effect
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev <= 1) {
+          handleSubmit()
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [])
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
+  }
+
+  const getCurrentQuestions = () => {
+    return phase === "logic" ? logicQuestions : creativeQuestions
+  }
+
+  const getTotalQuestions = () => {
+    return logicQuestions.length + creativeQuestions.length
+  }
+
+  const getOverallProgress = () => {
+    const logicCompleted = phase === "logic" ? currentQuestion : logicQuestions.length
+    const creativeCompleted = phase === "creative" ? currentQuestion : 0
+    return logicCompleted + creativeCompleted
+  }
+
+  const handleAnswerChange = (value: string) => {
+    if (phase === "logic") {
+      setLogicAnswers((prev) => ({
+        ...prev,
+        [currentQuestion]: value,
+      }))
+    } else {
+      setCreativeAnswers((prev) => ({
+        ...prev,
+        [currentQuestion]: Number.parseInt(value),
+      }))
+    }
+  }
+
+  const handleNext = () => {
+    const currentQuestions = getCurrentQuestions()
+
+    if (currentQuestion < currentQuestions.length - 1) {
+      setCurrentQuestion((prev) => prev + 1)
+    } else if (phase === "logic") {
+      // Switch to creative phase
+      setPhase("creative")
+      setCurrentQuestion(0)
+    } else {
+      // Complete the test
+      handleSubmit()
+    }
+  }
+
+  const handlePrevious = () => {
+    if (currentQuestion > 0) {
+      setCurrentQuestion((prev) => prev - 1)
+    } else if (phase === "creative") {
+      // Go back to logic phase
+      setPhase("logic")
+      setCurrentQuestion(logicQuestions.length - 1)
+    }
+  }
+
+  const handleSubmit = () => {
+    // Calculate logic score
+    let logicCorrect = 0
+    logicQuestions.forEach((question, index) => {
+      if (logicAnswers[index] === question.correctAnswer) {
+        logicCorrect++
+      }
+    })
+    const logicScore = Math.round((logicCorrect / logicQuestions.length) * 100)
+
+    // Calculate creativity score
+    let creativityTotal = 0
+    creativeQuestions.forEach((question, index) => {
+      const answer = creativeAnswers[index] || 1
+      creativityTotal += question.isReverse ? 6 - answer : answer
+    })
+    const creativityMaxScore = creativeQuestions.length * 5
+    const creativityScore = Math.round((creativityTotal / creativityMaxScore) * 100)
+
+    // Calculate combined score
+    const combinedResult = calculateCombinedScore(logicScore, creativityScore)
+
+    // Store results
+    const results = {
+      type: "combined",
+      logicScore,
+      creativityScore,
+      overallScore: combinedResult.overallScore,
+      level: combinedResult.level,
+      description: combinedResult.description,
+      breakdown: combinedResult.breakdown,
+      logicAnswers,
+      creativeAnswers,
+      logicCorrect,
+      creativityTotal,
+      creativityMaxScore,
+      completedAt: new Date().toISOString(),
+    }
+
+    localStorage.setItem("combinedTestResults", JSON.stringify(results))
+    router.push("/results/combined")
+  }
+
+  const currentQuestions = getCurrentQuestions()
+  const currentQ = currentQuestions[currentQuestion]
+  const isLastQuestion = phase === "creative" && currentQuestion === creativeQuestions.length - 1
+  const hasAnswer =
+    phase === "logic" ? logicAnswers[currentQuestion] !== undefined : creativeAnswers[currentQuestion] !== undefined
+
+  const getPhaseTitle = () => {
+    if (phase === "logic") return "第一部分：邏輯思維測試"
+    return "第二部分：創意能力測試"
+  }
+
+  const getQuestionNumber = () => {
+    if (phase === "logic") return currentQuestion + 1
+    return logicQuestions.length + currentQuestion + 1
+  }
+
+  return (
+    <TestLayout
+      title="綜合能力測試"
+      currentQuestion={getQuestionNumber()}
+      totalQuestions={getTotalQuestions()}
+      timeRemaining={formatTime(timeRemaining)}
+      onBack={() => router.push("/")}
+    >
+      <div className="max-w-4xl mx-auto">
+        {/* Phase Indicator */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-foreground">{getPhaseTitle()}</h2>
+            <div className="text-sm text-muted-foreground">
+              {phase === "logic"
+                ? `${currentQuestion + 1}/${logicQuestions.length}`
+                : `${currentQuestion + 1}/${creativeQuestions.length}`}
+            </div>
+          </div>
+          <Progress value={(getOverallProgress() / getTotalQuestions()) * 100} className="h-2" />
+        </div>
+
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="text-xl text-balance">
+              {phase === "logic" ? currentQ.question : currentQ.statement}
+            </CardTitle>
+            {phase === "creative" && (
+              <p className="text-sm text-muted-foreground">請根據這個描述與你的實際情況的符合程度進行選擇</p>
+            )}
+          </CardHeader>
+          <CardContent>
+            <RadioGroup
+              value={
+                phase === "logic"
+                  ? logicAnswers[currentQuestion] || ""
+                  : creativeAnswers[currentQuestion]?.toString() || ""
+              }
+              onValueChange={handleAnswerChange}
+              className="space-y-4"
+            >
+              {phase === "logic"
+                ? // Logic question options
+                  currentQ.options?.map((option: any, index: number) => (
+                    <div
+                      key={index}
+                      className="flex items-center space-x-3 p-4 rounded-lg border hover:bg-muted/50 transition-colors"
+                    >
+                      <RadioGroupItem value={option.value} id={`option-${index}`} />
+                      <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer text-base leading-relaxed">
+                        {option.text}
+                      </Label>
+                    </div>
+                  ))
+                : // Creative question options
+                  [
+                    { value: "5", label: "我最符合", color: "text-green-600" },
+                    { value: "4", label: "比較符合", color: "text-green-500" },
+                    { value: "3", label: "一般", color: "text-yellow-500" },
+                    { value: "2", label: "不太符合", color: "text-orange-500" },
+                    { value: "1", label: "與我不符", color: "text-red-500" },
+                  ].map((option) => (
+                    <div
+                      key={option.value}
+                      className="flex items-center space-x-4 p-4 rounded-lg border hover:bg-muted/50 transition-colors"
+                    >
+                      <RadioGroupItem value={option.value} id={`option-${option.value}`} />
+                      <Label
+                        htmlFor={`option-${option.value}`}
+                        className={`flex-1 cursor-pointer text-base font-medium ${option.color}`}
+                      >
+                        {option.label}
+                      </Label>
+                      <div className="text-sm text-muted-foreground font-mono">{option.value}</div>
+                    </div>
+                  ))}
+            </RadioGroup>
+          </CardContent>
+        </Card>
+
+        {/* Navigation */}
+        <div className="flex justify-between items-center">
+          <Button variant="outline" onClick={handlePrevious} disabled={phase === "logic" && currentQuestion === 0}>
+            上一題
+          </Button>
+
+          <div className="flex gap-2 max-w-md overflow-x-auto">
+            {/* Logic questions indicators */}
+            {logicQuestions.map((_, index) => (
+              <button
+                key={`logic-${index}`}
+                onClick={() => {
+                  if (phase === "logic" || phase === "creative") {
+                    setPhase("logic")
+                    setCurrentQuestion(index)
+                  }
+                }}
+                className={`w-8 h-8 rounded-full text-sm font-medium transition-colors flex-shrink-0 ${
+                  phase === "logic" && index === currentQuestion
+                    ? "bg-primary text-primary-foreground"
+                    : logicAnswers[index] !== undefined
+                      ? "bg-primary/70 text-primary-foreground"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                }`}
+              >
+                {index + 1}
+              </button>
+            ))}
+
+            {/* Separator */}
+            <div className="w-px h-8 bg-border mx-2"></div>
+
+            {/* Creative questions indicators */}
+            {creativeQuestions.map((_, index) => (
+              <button
+                key={`creative-${index}`}
+                onClick={() => {
+                  if (phase === "creative") {
+                    setCurrentQuestion(index)
+                  }
+                }}
+                className={`w-8 h-8 rounded-full text-sm font-medium transition-colors flex-shrink-0 ${
+                  phase === "creative" && index === currentQuestion
+                    ? "bg-accent text-accent-foreground"
+                    : creativeAnswers[index] !== undefined
+                      ? "bg-accent/70 text-accent-foreground"
+                      : phase === "creative"
+                        ? "bg-muted text-muted-foreground hover:bg-muted/80"
+                        : "bg-muted/50 text-muted-foreground/50"
+                }`}
+                disabled={phase === "logic"}
+              >
+                {logicQuestions.length + index + 1}
+              </button>
+            ))}
+          </div>
+
+          {isLastQuestion ? (
+            <Button onClick={handleSubmit} disabled={!hasAnswer} className="bg-green-600 hover:bg-green-700">
+              提交測試
+            </Button>
+          ) : (
+            <Button onClick={handleNext} disabled={!hasAnswer}>
+              {phase === "logic" && currentQuestion === logicQuestions.length - 1 ? "進入第二部分" : "下一題"}
+            </Button>
+          )}
+        </div>
+
+        {/* Progress Summary */}
+        <div className="mt-8 text-center text-sm text-muted-foreground">
+          總進度：已完成 {getOverallProgress()} / {getTotalQuestions()} 題
+          <br />
+          當前階段：{phase === "logic" ? "邏輯思維測試" : "創意能力測試"} (
+          {Object.keys(phase === "logic" ? logicAnswers : creativeAnswers).length} / {currentQuestions.length} 題)
+        </div>
+      </div>
+    </TestLayout>
+  )
+}
