@@ -16,6 +16,7 @@
     "test-responsive-design": "node scripts/test-responsive-design.js",
     "test-reverse-scoring": "node scripts/test-reverse-scoring.js",
     "test-creative-flow": "node scripts/test-creative-flow.js",
+    "test-creative-score-levels": "node scripts/test-creative-score-levels.js",
     "update-logic-table": "node scripts/update-logic-table.js",
     "seed-db": "npx tsx lib/database/seed.ts",
     "seed-logic-questions": "npx tsx lib/database/seed-logic-questions.ts",
