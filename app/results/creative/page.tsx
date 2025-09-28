@@ -191,13 +191,16 @@ export default function CreativeResultsPage() {
             </CardContent>
           </Card>
 
-          {/* Detailed Feedback */}
+          {/* Detailed Feedback Chart */}
           <Card>
             <CardHeader>
-              <CardTitle>詳細反饋</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5" />
+                創意能力分析圖表
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div className="p-3 md:p-4 bg-muted/50 rounded-lg">
                   <h3 className="font-medium mb-2 text-sm md:text-base">創意能力評估</h3>
                   <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
@@ -211,21 +214,138 @@ export default function CreativeResultsPage() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-                  {categoryResults.map((category) => (
-                    <div key={category.category} className="p-3 md:p-4 border rounded-lg">
-                      <h4 className="font-medium mb-2 text-sm md:text-base">{category.name}</h4>
-                      <div className="flex items-center gap-2 mb-2">
-                        <Progress value={category.score} className="flex-1 h-2" />
-                        <span className="text-xs md:text-sm font-medium">{category.score}%</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        {category.score >= 80 && "表現優秀，繼續保持"}
-                        {category.score >= 60 && category.score < 80 && "表現良好，有提升空間"}
-                        {category.score < 60 && "需要重點提升"}
-                      </p>
+                {/* Radar Chart */}
+                <div className="space-y-4">
+                  <h4 className="font-medium text-sm md:text-base text-center">能力維度雷達圖</h4>
+                  <div className="flex justify-center">
+                    <div className="relative w-56 h-56 md:w-72 md:h-72">
+                      {/* Radar Chart Background */}
+                      <svg viewBox="0 0 200 200" className="w-full h-full">
+                        {/* Grid circles */}
+                        <circle cx="100" cy="100" r="60" fill="none" stroke="#e5e7eb" strokeWidth="1"/>
+                        <circle cx="100" cy="100" r="45" fill="none" stroke="#e5e7eb" strokeWidth="1"/>
+                        <circle cx="100" cy="100" r="30" fill="none" stroke="#e5e7eb" strokeWidth="1"/>
+                        <circle cx="100" cy="100" r="15" fill="none" stroke="#e5e7eb" strokeWidth="1"/>
+                        
+                        {/* Grid lines - 4 axes for 4 dimensions */}
+                        {[0, 90, 180, 270].map((angle, index) => {
+                          const x1 = 100 + 60 * Math.cos((angle - 90) * Math.PI / 180)
+                          const y1 = 100 + 60 * Math.sin((angle - 90) * Math.PI / 180)
+                          return (
+                            <line
+                              key={index}
+                              x1="100"
+                              y1="100"
+                              x2={x1}
+                              y2={y1}
+                              stroke="#e5e7eb"
+                              strokeWidth="1"
+                            />
+                          )
+                        })}
+                        
+                        {/* Data points and area */}
+                        {categoryResults.map((category, index) => {
+                          const angle = (index * 90 - 90) * Math.PI / 180
+                          const radius = (category.score / 100) * 60
+                          const x = 100 + radius * Math.cos(angle)
+                          const y = 100 + radius * Math.sin(angle)
+                          
+                          // Calculate label position - more space for text
+                          let labelRadius = 75
+                          let labelX = 100 + labelRadius * Math.cos(angle)
+                          let labelY = 100 + labelRadius * Math.sin(angle)
+                          
+                          // Special adjustments for imagination and originality
+                          if (angle === 0) { // Right - 想像力
+                            labelRadius = 70
+                            labelX = 100 + labelRadius * Math.cos(angle)
+                            labelY = 100 + labelRadius * Math.sin(angle)
+                          } else if (angle === 180 * Math.PI / 180) { // Left - 原創性
+                            labelRadius = 70
+                            labelX = 100 + labelRadius * Math.cos(angle)
+                            labelY = 100 + labelRadius * Math.sin(angle)
+                          }
+                          
+                          // Adjust text anchor based on position
+                          let textAnchor: "middle" | "start" | "end" = "middle"
+                          let dominantBaseline: "middle" | "hanging" | "alphabetic" = "middle"
+                          
+                          if (angle === -90 * Math.PI / 180) { // Top
+                            dominantBaseline = "hanging"
+                          } else if (angle === 90 * Math.PI / 180) { // Bottom
+                            dominantBaseline = "alphabetic"
+                          } else if (angle === 0) { // Right
+                            textAnchor = "start"
+                          } else if (angle === 180 * Math.PI / 180) { // Left
+                            textAnchor = "end"
+                          }
+                          
+                          return (
+                            <g key={category.category}>
+                              {/* Data point */}
+                              <circle
+                                cx={x}
+                                cy={y}
+                                r="4"
+                                fill="#3b82f6"
+                                stroke="white"
+                                strokeWidth="2"
+                                className="drop-shadow-sm"
+                              />
+                              {/* Label - positioned closer to the chart */}
+                              <text
+                                x={labelX}
+                                y={labelY}
+                                textAnchor={textAnchor}
+                                dominantBaseline={dominantBaseline}
+                                className="text-[10px] fill-gray-600 font-medium"
+                              >
+                                {category.name}
+                              </text>
+                              {/* Score label - positioned above the data point */}
+                              <text
+                                x={x}
+                                y={y - 12}
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                className="text-[10px] fill-blue-600 font-bold"
+                                style={{ textShadow: '1px 1px 2px white, -1px -1px 2px white, 1px -1px 2px white, -1px 1px 2px white' }}
+                              >
+                                {category.score}%
+                              </text>
+                            </g>
+                          )
+                        })}
+                        
+                        {/* Area fill */}
+                        <polygon
+                          points={categoryResults.map((category, index) => {
+                            const angle = (index * 90 - 90) * Math.PI / 180
+                            const radius = (category.score / 100) * 60
+                            const x = 100 + radius * Math.cos(angle)
+                            const y = 100 + radius * Math.sin(angle)
+                            return `${x},${y}`
+                          }).join(' ')}
+                          fill="rgba(59, 130, 246, 0.2)"
+                          stroke="#3b82f6"
+                          strokeWidth="2"
+                        />
+                      </svg>
                     </div>
-                  ))}
+                  </div>
+                  
+                  {/* Legend */}
+                  <div className="flex justify-center">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                      {categoryResults.map((category) => (
+                        <div key={category.category} className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                          <span className="text-muted-foreground">{category.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             </CardContent>
