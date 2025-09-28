@@ -346,6 +346,50 @@ export default function CreativeResultsPage() {
                       ))}
                     </div>
                   </div>
+                  
+                  {/* Dimension Details */}
+                  <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {categoryResults.map((category) => {
+                      const getDescription = (categoryName: string) => {
+                        switch (categoryName) {
+                          case '創新能力':
+                            return '善於提出新想法，勇於嘗試不同的解決方案'
+                          case '想像力':
+                            return '能夠從不同角度思考，具有豐富的創意思維'
+                          case '靈活性':
+                            return '適應變化能力強，能夠靈活調整思維方式'
+                          case '原創性':
+                            return '具有獨特的創見，能夠產生原創性想法'
+                          default:
+                            return ''
+                        }
+                      }
+                      
+                      const getLevel = (score: number) => {
+                        if (score >= 80) return { text: '優秀', color: 'text-green-600' }
+                        if (score >= 60) return { text: '良好', color: 'text-blue-600' }
+                        if (score >= 40) return { text: '一般', color: 'text-yellow-600' }
+                        return { text: '待提升', color: 'text-red-600' }
+                      }
+                      
+                      const level = getLevel(category.score)
+                      
+                      return (
+                        <div key={category.category} className="p-3 bg-muted/30 rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <h5 className="font-medium text-sm">{category.name}</h5>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-bold text-blue-600">{category.score}%</span>
+                              <span className={`text-xs ${level.color}`}>{level.text}</span>
+                            </div>
+                          </div>
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            {getDescription(category.name)}
+                          </p>
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
               </div>
             </CardContent>

@@ -8,9 +8,28 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
 import { useRouter } from "next/navigation"
-import { logicQuestions } from "@/lib/questions/logic-questions"
-import { creativeQuestions } from "@/lib/questions/creative-questions"
 import { calculateCombinedScore } from "@/lib/utils/score-calculator"
+
+interface LogicQuestion {
+  id: number
+  question: string
+  option_a: string
+  option_b: string
+  option_c: string
+  option_d: string
+  option_e: string
+  correct_answer: 'A' | 'B' | 'C' | 'D' | 'E'
+  explanation?: string
+  created_at: string
+}
+
+interface CreativeQuestion {
+  id: number
+  statement: string
+  category: 'innovation' | 'imagination' | 'flexibility' | 'originality'
+  is_reverse: boolean
+  created_at: string
+}
 
 type TestPhase = "logic" | "creative" | "completed"
 
@@ -21,9 +40,42 @@ export default function CombinedTestPage() {
   const [logicAnswers, setLogicAnswers] = useState<Record<number, string>>({})
   const [creativeAnswers, setCreativeAnswers] = useState<Record<number, number>>({})
   const [timeRemaining, setTimeRemaining] = useState(45 * 60) // 45 minutes total
+  const [logicQuestions, setLogicQuestions] = useState<LogicQuestion[]>([])
+  const [creativeQuestions, setCreativeQuestions] = useState<CreativeQuestion[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Load questions from database
+  useEffect(() => {
+    const loadQuestions = async () => {
+      try {
+        // Load logic questions
+        const logicResponse = await fetch('/api/logic-questions')
+        const logicData = await logicResponse.json()
+        
+        // Load creative questions
+        const creativeResponse = await fetch('/api/creative-questions')
+        const creativeData = await creativeResponse.json()
+
+        if (logicData.success && creativeData.success) {
+          setLogicQuestions(logicData.questions)
+          setCreativeQuestions(creativeData.questions)
+        } else {
+          console.error('Failed to load questions:', logicData.error || creativeData.error)
+        }
+      } catch (error) {
+        console.error('Error loading questions:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadQuestions()
+  }, [])
 
   // Timer effect
   useEffect(() => {
+    if (logicQuestions.length === 0 && creativeQuestions.length === 0) return
+
     const timer = setInterval(() => {
       setTimeRemaining((prev) => {
         if (prev <= 1) {
@@ -35,7 +87,7 @@ export default function CombinedTestPage() {
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [])
+  }, [logicQuestions, creativeQuestions])
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
@@ -100,7 +152,7 @@ export default function CombinedTestPage() {
     // Calculate logic score
     let logicCorrect = 0
     logicQuestions.forEach((question, index) => {
-      if (logicAnswers[index] === question.correctAnswer) {
+      if (logicAnswers[index] === question.correct_answer) {
         logicCorrect++
       }
     })
@@ -110,7 +162,7 @@ export default function CombinedTestPage() {
     let creativityTotal = 0
     creativeQuestions.forEach((question, index) => {
       const answer = creativeAnswers[index] || 1
-      creativityTotal += question.isReverse ? 6 - answer : answer
+      creativityTotal += question.is_reverse ? 6 - answer : answer
     })
     const creativityMaxScore = creativeQuestions.length * 5
     const creativityScore = Math.round((creativityTotal / creativityMaxScore) * 100)
@@ -153,6 +205,40 @@ export default function CombinedTestPage() {
   const getQuestionNumber = () => {
     if (phase === "logic") return currentQuestion + 1
     return logicQuestions.length + currentQuestion + 1
+  }
+
+  if (isLoading) {
+    return (
+      <TestLayout
+        title="綜合能力測試"
+        currentQuestion={0}
+        totalQuestions={0}
+        timeRemaining="00:00"
+        onBack={() => router.push("/")}
+      >
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">載入題目中...</p>
+        </div>
+      </TestLayout>
+    )
+  }
+
+  if (logicQuestions.length === 0 || creativeQuestions.length === 0) {
+    return (
+      <TestLayout
+        title="綜合能力測試"
+        currentQuestion={0}
+        totalQuestions={0}
+        timeRemaining="00:00"
+        onBack={() => router.push("/")}
+      >
+        <div className="max-w-4xl mx-auto text-center">
+          <p className="text-muted-foreground mb-4">無法載入題目，請稍後再試</p>
+          <Button onClick={() => window.location.reload()}>重新載入</Button>
+        </div>
+      </TestLayout>
+    )
   }
 
   return (
@@ -198,28 +284,34 @@ export default function CombinedTestPage() {
             >
               {phase === "logic"
                 ? // Logic question options
-                  currentQ.options?.map((option: any, index: number) => (
+                  [
+                    { value: 'A', text: currentQ.option_a },
+                    { value: 'B', text: currentQ.option_b },
+                    { value: 'C', text: currentQ.option_c },
+                    { value: 'D', text: currentQ.option_d },
+                    { value: 'E', text: currentQ.option_e }
+                  ].map((option, index) => (
                     <div
                       key={index}
                       className="flex items-center space-x-3 p-4 rounded-lg border hover:bg-muted/50 transition-colors"
                     >
                       <RadioGroupItem value={option.value} id={`option-${index}`} />
                       <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer text-base leading-relaxed">
-                        {option.text}
+                        {option.value}. {option.text}
                       </Label>
                     </div>
                   ))
                 : // Creative question options
                   [
-                    { value: "5", label: "我最符合", color: "text-green-600" },
-                    { value: "4", label: "比較符合", color: "text-green-500" },
-                    { value: "3", label: "一般", color: "text-yellow-500" },
-                    { value: "2", label: "不太符合", color: "text-orange-500" },
-                    { value: "1", label: "與我不符", color: "text-red-500" },
+                    { value: "5", label: "我最符合", color: "text-green-600", bgColor: "bg-green-50" },
+                    { value: "4", label: "比較符合", color: "text-green-500", bgColor: "bg-green-50" },
+                    { value: "3", label: "一般", color: "text-yellow-500", bgColor: "bg-yellow-50" },
+                    { value: "2", label: "不太符合", color: "text-orange-500", bgColor: "bg-orange-50" },
+                    { value: "1", label: "與我不符", color: "text-red-500", bgColor: "bg-red-50" },
                   ].map((option) => (
                     <div
                       key={option.value}
-                      className="flex items-center space-x-4 p-4 rounded-lg border hover:bg-muted/50 transition-colors"
+                      className={`flex items-center space-x-4 p-4 rounded-lg border ${option.bgColor} hover:bg-muted/50 transition-colors`}
                     >
                       <RadioGroupItem value={option.value} id={`option-${option.value}`} />
                       <Label
@@ -228,7 +320,6 @@ export default function CombinedTestPage() {
                       >
                         {option.label}
                       </Label>
-                      <div className="text-sm text-muted-foreground font-mono">{option.value}</div>
                     </div>
                   ))}
             </RadioGroup>

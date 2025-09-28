@@ -9,6 +9,27 @@ import { Brain, Lightbulb, BarChart3, Home, RotateCcw, TrendingUp, Target, Award
 import Link from "next/link"
 import { getRecommendations } from "@/lib/utils/score-calculator"
 
+interface LogicQuestion {
+  id: number
+  question: string
+  option_a: string
+  option_b: string
+  option_c: string
+  option_d: string
+  option_e: string
+  correct_answer: 'A' | 'B' | 'C' | 'D' | 'E'
+  explanation?: string
+  created_at: string
+}
+
+interface CreativeQuestion {
+  id: number
+  statement: string
+  category: 'innovation' | 'imagination' | 'flexibility' | 'originality'
+  is_reverse: boolean
+  created_at: string
+}
+
 interface CombinedTestResults {
   type: string
   logicScore: number
@@ -31,13 +52,54 @@ interface CombinedTestResults {
 
 export default function CombinedResultsPage() {
   const [results, setResults] = useState<CombinedTestResults | null>(null)
+  const [logicQuestions, setLogicQuestions] = useState<LogicQuestion[]>([])
+  const [creativeQuestions, setCreativeQuestions] = useState<CreativeQuestion[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const savedResults = localStorage.getItem("combinedTestResults")
-    if (savedResults) {
-      setResults(JSON.parse(savedResults))
+    const loadData = async () => {
+      try {
+        // Load test results
+        const savedResults = localStorage.getItem("combinedTestResults")
+        if (savedResults) {
+          setResults(JSON.parse(savedResults))
+        }
+
+        // Load questions from database
+        const logicResponse = await fetch('/api/logic-questions')
+        const logicData = await logicResponse.json()
+        
+        const creativeResponse = await fetch('/api/creative-questions')
+        const creativeData = await creativeResponse.json()
+
+        if (logicData.success && creativeData.success) {
+          setLogicQuestions(logicData.questions)
+          setCreativeQuestions(creativeData.questions)
+        } else {
+          console.error('Failed to load questions:', logicData.error || creativeData.error)
+        }
+      } catch (error) {
+        console.error('Error loading data:', error)
+      } finally {
+        setIsLoading(false)
+      }
     }
+
+    loadData()
   }, [])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="text-center py-8">
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-muted-foreground">載入結果中...</p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   if (!results) {
     return (
@@ -62,6 +124,72 @@ export default function CombinedResultsPage() {
     if (score >= 70) return "text-yellow-600"
     if (score >= 60) return "text-orange-600"
     return "text-red-600"
+  }
+
+  const getLogicLevel = (score: number) => {
+    if (score >= 100) return {
+      level: "邏輯巔峰者",
+      color: "bg-purple-600",
+      description: "近乎完美的邏輯典範！你像一台「推理引擎」，嚴謹又高效，幾乎不受陷阱干擾。",
+      suggestion: "多和他人分享你的思考路徑，能幫助團隊整體邏輯力提升。"
+    }
+    if (score >= 80) return {
+      level: "邏輯大師",
+      color: "bg-blue-500",
+      description: "你的思維如同精密儀器，能快速抓住題目關鍵，並做出有效推理。常常是團隊中「冷靜的分析者」。",
+      suggestion: "挑戰更高層次的難題，讓你的邏輯力更加精進。"
+    }
+    if (score >= 60) return {
+      level: "邏輯高手",
+      color: "bg-green-500",
+      description: "邏輯清晰穩定，大部分情境都能正確判斷。偶爾會因粗心錯過陷阱。",
+      suggestion: "在思維縝密之餘，更加留心細節，就能把錯誤率降到最低。"
+    }
+    if (score >= 30) return {
+      level: "邏輯學徒",
+      color: "bg-yellow-500",
+      description: "已經抓到一些邏輯規律，能解決中等難度的問題。遇到複雜情境時，仍可能卡關。",
+      suggestion: "嘗試將問題拆解成小步驟，就像組裝樂高，每一塊拼好，答案就自然浮現。"
+    }
+    return {
+      level: "邏輯探險新手",
+      color: "bg-red-500",
+      description: "還在邏輯森林的入口徘徊。思考時可能忽略細節，或被陷阱誤導。",
+      suggestion: "多練習經典邏輯題，像是在拼拼圖般，慢慢建立清晰的分析步驟。"
+    }
+  }
+
+  const getCreativityLevel = (score: number) => {
+    if (score >= 90) return {
+      level: "創意巔峰者",
+      color: "bg-purple-600",
+      description: "創意力近乎無窮，你是團隊裡的靈感源泉，總能帶來突破性的想法。",
+      suggestion: "你不只創造靈感，更能影響他人。如果能結合執行力，你將成為真正的創新領袖。"
+    }
+    if (score >= 75) return {
+      level: "創意引領者",
+      color: "bg-blue-500",
+      description: "你是靈感的推動者！總是能在團體中主動拋出新想法，激發別人跟進。",
+      suggestion: "持續累積學習，讓你的靈感不僅是點子，而能帶動真正的行動。"
+    }
+    if (score >= 55) return {
+      level: "創意實踐者",
+      color: "bg-green-500",
+      description: "靈感已經隨手可得，在團體中也常被認為是「有創意的人」。",
+      suggestion: "再給自己一點勇氣，不要害怕挑戰慣例，你的創意將更有力量。"
+    }
+    if (score >= 35) return {
+      level: "創意開拓者",
+      color: "bg-yellow-500",
+      description: "你其實有自己的想法，但有時習慣跟隨大多數人的步伐。",
+      suggestion: "試著勇敢說出腦中天馬行空的念頭，你會發現，這些點子或許就是團隊需要的突破口。"
+    }
+    return {
+      level: "創意萌芽者",
+      color: "bg-red-500",
+      description: "還在創意旅程的起點。雖然暫時表現平淡，但這正是無限潛力的開端！",
+      suggestion: "觀察生活小事，或閱讀不同領域的內容，讓靈感一點一滴積累。"
+    }
   }
 
   return (
@@ -101,24 +229,24 @@ export default function CombinedResultsPage() {
             </CardHeader>
             <CardContent>
               <Progress value={results.overallScore} className="h-4 mb-6" />
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-3 gap-4 md:gap-6">
                 <div className="text-center">
-                  <div className={`text-3xl font-bold mb-2 ${getScoreColor(results.logicScore)}`}>
+                  <div className={`text-2xl md:text-3xl font-bold mb-1 md:mb-2 ${getScoreColor(results.logicScore)}`}>
                     {results.logicScore}
                   </div>
-                  <div className="text-sm text-muted-foreground">邏輯思維</div>
+                  <div className="text-xs md:text-sm text-muted-foreground">邏輯思維</div>
                 </div>
                 <div className="text-center">
-                  <div className={`text-3xl font-bold mb-2 ${getScoreColor(results.creativityScore)}`}>
+                  <div className={`text-2xl md:text-3xl font-bold mb-1 md:mb-2 ${getScoreColor(results.creativityScore)}`}>
                     {results.creativityScore}
                   </div>
-                  <div className="text-sm text-muted-foreground">創意能力</div>
+                  <div className="text-xs md:text-sm text-muted-foreground">創意能力</div>
                 </div>
                 <div className="text-center">
-                  <div className={`text-3xl font-bold mb-2 ${getScoreColor(results.breakdown.balance)}`}>
+                  <div className={`text-2xl md:text-3xl font-bold mb-1 md:mb-2 ${getScoreColor(results.breakdown.balance)}`}>
                     {results.breakdown.balance}
                   </div>
-                  <div className="text-sm text-muted-foreground">能力平衡</div>
+                  <div className="text-xs md:text-sm text-muted-foreground">能力平衡</div>
                 </div>
               </div>
             </CardContent>
@@ -149,10 +277,30 @@ export default function CombinedResultsPage() {
                       <div className="text-muted-foreground">答對題數</div>
                     </div>
                     <div className="text-center p-3 bg-muted/50 rounded">
-                      <div className="font-bold text-primary">10</div>
+                      <div className="font-bold text-primary">{logicQuestions.length}</div>
                       <div className="text-muted-foreground">總題數</div>
                     </div>
                   </div>
+                  
+                  {/* Logic Level Assessment */}
+                  {(() => {
+                    const logicLevel = getLogicLevel(results.logicScore)
+                    return (
+                      <div className="mt-4 p-4 bg-muted/30 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className={`w-3 h-3 ${logicLevel.color} rounded-full`}></div>
+                          <span className="font-medium text-sm">{logicLevel.level}</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-2 leading-relaxed">
+                          {logicLevel.description}
+                        </p>
+                        <div className="bg-muted/50 rounded p-2 text-xs">
+                          <span className="font-medium">👉 建議：</span>
+                          <span className="text-muted-foreground">{logicLevel.suggestion}</span>
+                        </div>
+                      </div>
+                    )
+                  })()}
                 </div>
               </CardContent>
             </Card>
@@ -177,13 +325,33 @@ export default function CombinedResultsPage() {
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div className="text-center p-3 bg-muted/50 rounded">
                       <div className="font-bold text-accent">{results.creativityTotal}</div>
-                      <div className="text-muted-foreground">總得分</div>
+                      <div className="text-muted-foreground">原始得分</div>
                     </div>
                     <div className="text-center p-3 bg-muted/50 rounded">
                       <div className="font-bold text-primary">{results.creativityMaxScore}</div>
                       <div className="text-muted-foreground">滿分</div>
                     </div>
                   </div>
+                  
+                  {/* Creative Level Assessment */}
+                  {(() => {
+                    const creativityLevel = getCreativityLevel(results.creativityScore)
+                    return (
+                      <div className="mt-4 p-4 bg-muted/30 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className={`w-3 h-3 ${creativityLevel.color} rounded-full`}></div>
+                          <span className="font-medium text-sm">{creativityLevel.level}</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-2 leading-relaxed">
+                          {creativityLevel.description}
+                        </p>
+                        <div className="bg-muted/50 rounded p-2 text-xs">
+                          <span className="font-medium">👉 建議：</span>
+                          <span className="text-muted-foreground">{creativityLevel.suggestion}</span>
+                        </div>
+                      </div>
+                    )
+                  })()}
                 </div>
               </CardContent>
             </Card>
@@ -275,7 +443,7 @@ export default function CombinedResultsPage() {
             <Button asChild size="lg">
               <Link href="/">
                 <Home className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">返回首頁</span>
+                <span>返回首頁</span>
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg">

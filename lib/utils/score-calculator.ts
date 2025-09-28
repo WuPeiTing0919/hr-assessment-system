@@ -112,7 +112,8 @@ export function calculateCombinedScore(
 
   // 計算平衡性分數（兩項分數越接近，平衡性越高）
   const scoreDiff = Math.abs(logicScore - creativityScore)
-  const balanceScore = Math.max(0, 100 - scoreDiff * 2)
+  // 調整平衡性計算：差距在 20 分以內為滿分，差距越大扣分越少
+  const balanceScore = Math.max(0, 100 - Math.min(scoreDiff * 0.5, 50))
 
   const overallScore = Math.round(
     logicScore * logicWeight + creativityScore * creativityWeight + balanceScore * balanceWeight,
