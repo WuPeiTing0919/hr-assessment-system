@@ -161,23 +161,29 @@ export default function LogicResultsPage() {
                   {scoreLevel.level}
                 </Badge>
               </div>
-              <p className="text-lg text-muted-foreground">{scoreLevel.description}</p>
+              <p className="text-lg text-muted-foreground mb-3">{scoreLevel.description}</p>
+              <div className="bg-muted/50 rounded-lg p-4 text-sm">
+                <p className="text-muted-foreground">
+                  <span className="font-medium">👉 建議：</span>
+                  {scoreLevel.suggestion}
+                </p>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <div className="grid grid-cols-3 gap-4 mb-6">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600 mb-1">{results.correctAnswers}</div>
-                  <div className="text-sm text-muted-foreground">答對題數</div>
+                  <div className="text-xs text-muted-foreground">答對題數</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-primary mb-1">{results.totalQuestions}</div>
-                  <div className="text-sm text-muted-foreground">總題數</div>
+                  <div className="text-xs text-muted-foreground">總題數</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-accent mb-1">
                     {Math.round((results.correctAnswers / results.totalQuestions) * 100)}%
                   </div>
-                  <div className="text-sm text-muted-foreground">正確率</div>
+                  <div className="text-xs text-muted-foreground">正確率</div>
                 </div>
               </div>
               <Progress value={results.score} className="h-3 mb-4" />
@@ -211,36 +217,36 @@ export default function LogicResultsPage() {
                   const userOptionText = userAnswer ? getOptionText(userAnswer) : "未作答"
 
                   return (
-                    <div key={question.id} className="border rounded-lg p-4">
+                    <div key={question.id} className="border rounded-lg p-3 sm:p-4">
                       <div className="flex items-start gap-3 mb-3">
                         <div className="flex-shrink-0 mt-1">
                           {isCorrect ? (
-                            <CheckCircle className="w-5 h-5 text-green-500" />
+                            <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
                           ) : (
-                            <XCircle className="w-5 h-5 text-red-500" />
+                            <XCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
                           )}
                         </div>
-                        <div className="flex-1">
-                          <h3 className="font-medium mb-2 text-balance">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium mb-2 text-sm sm:text-base text-balance">
                             第{index + 1}題：{question.question}
                           </h3>
-                          <div className="space-y-2 text-sm">
-                            <div className="flex items-center gap-2">
-                              <span className="text-muted-foreground">你的答案：</span>
-                              <Badge variant={isCorrect ? "default" : "destructive"}>
+                          <div className="space-y-2 text-xs sm:text-sm">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                              <span className="text-muted-foreground text-xs">你的答案：</span>
+                              <Badge variant={isCorrect ? "default" : "destructive"} className="text-xs w-fit">
                                 {userAnswer ? `${userAnswer}. ${userOptionText}` : "未作答"}
                               </Badge>
                             </div>
                             {!isCorrect && (
-                              <div className="flex items-center gap-2">
-                                <span className="text-muted-foreground">正確答案：</span>
-                                <Badge variant="outline" className="border-green-500 text-green-700">
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                                <span className="text-muted-foreground text-xs">正確答案：</span>
+                                <Badge variant="outline" className="border-green-500 text-green-700 text-xs w-fit">
                                   {question.correct_answer}. {correctOptionText}
                                 </Badge>
                               </div>
                             )}
                             {question.explanation && (
-                              <div className="mt-2 p-3 bg-muted/50 rounded text-sm">
+                              <div className="mt-2 p-2 sm:p-3 bg-muted/50 rounded text-xs sm:text-sm">
                                 <strong>解析：</strong>
                                 {question.explanation}
                               </div>
@@ -256,20 +262,20 @@ export default function LogicResultsPage() {
           </Card>
 
           {/* Actions */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+            <Button asChild size="lg" className="w-full sm:w-auto">
               <Link href="/">
                 <Home className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">返回首頁</span>
+                <span>返回首頁</span>
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg">
+            <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
               <Link href="/tests/logic">
                 <RotateCcw className="w-4 h-4 mr-2" />
                 重新測試
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg">
+            <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
               <Link href="/tests/creative">開始創意測試</Link>
             </Button>
           </div>
