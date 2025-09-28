@@ -44,15 +44,17 @@ export default function LogicResultsPage() {
           setResults(JSON.parse(savedResults))
         }
 
-        // 載入題目數據
+        // 載入題目資料
         const response = await fetch('/api/logic-questions')
         const data = await response.json()
         
         if (data.success) {
           setQuestions(data.questions)
+        } else {
+          console.error('Failed to load questions:', data.error)
         }
       } catch (error) {
-        console.error('載入數據失敗:', error)
+        console.error('Error loading data:', error)
       } finally {
         setIsLoading(false)
       }
@@ -90,37 +92,29 @@ export default function LogicResultsPage() {
   }
 
   const getScoreLevel = (score: number) => {
-    if (score === 100) {
-      return { 
-        level: "邏輯巔峰者", 
-        color: "bg-purple-600", 
-        description: "近乎完美的邏輯典範！你像一台「推理引擎」，嚴謹又高效，幾乎不受陷阱干擾。",
-        suggestion: "多和他人分享你的思考路徑，能幫助團隊整體邏輯力提升。"
-      }
+    if (score === 100) return { 
+      level: "邏輯巔峰者", 
+      color: "bg-purple-600", 
+      description: "近乎完美的邏輯典範！你像一台「推理引擎」，嚴謹又高效，幾乎不受陷阱干擾。",
+      suggestion: "多和他人分享你的思考路徑，能幫助團隊整體邏輯力提升。"
     }
-    if (score >= 80) {
-      return { 
-        level: "邏輯大師", 
-        color: "bg-green-600", 
-        description: "你的思維如同精密儀器，能快速抓住題目關鍵，並做出有效推理。常常是團隊中「冷靜的分析者」。",
-        suggestion: "挑戰更高層次的難題，讓你的邏輯力更加精進。"
-      }
+    if (score >= 80) return { 
+      level: "邏輯大師", 
+      color: "bg-green-500", 
+      description: "你的思維如同精密儀器，能快速抓住題目關鍵，並做出有效推理。常常是團隊中「冷靜的分析者」。",
+      suggestion: "挑戰更高層次的難題，讓你的邏輯力更加精進。"
     }
-    if (score >= 60) {
-      return { 
-        level: "邏輯高手", 
-        color: "bg-blue-500", 
-        description: "邏輯清晰穩定，大部分情境都能正確判斷。偶爾會因粗心錯過陷阱。",
-        suggestion: "在思維縝密之餘，更加留心細節，就能把錯誤率降到最低。"
-      }
+    if (score >= 60) return { 
+      level: "邏輯高手", 
+      color: "bg-blue-500", 
+      description: "邏輯清晰穩定，大部分情境都能正確判斷。偶爾會因粗心錯過陷阱。",
+      suggestion: "在思維縝密之餘，更加留心細節，就能把錯誤率降到最低。"
     }
-    if (score >= 30) {
-      return { 
-        level: "邏輯學徒", 
-        color: "bg-yellow-500", 
-        description: "已經抓到一些邏輯規律，能解決中等難度的問題。遇到複雜情境時，仍可能卡關。",
-        suggestion: "嘗試將問題拆解成小步驟，就像組裝樂高，每一塊拼好，答案就自然浮現。"
-      }
+    if (score >= 30) return { 
+      level: "邏輯學徒", 
+      color: "bg-yellow-500", 
+      description: "已經抓到一些邏輯規律，能解決中等難度的問題。遇到複雜情境時，仍可能卡關。",
+      suggestion: "嘗試將問題拆解成小步驟，就像組裝樂高，每一塊拼好，答案就自然浮現。"
     }
     return { 
       level: "邏輯探險新手", 
@@ -167,11 +161,7 @@ export default function LogicResultsPage() {
                   {scoreLevel.level}
                 </Badge>
               </div>
-              <p className="text-lg text-muted-foreground mb-4">{scoreLevel.description}</p>
-              <div className="bg-muted/50 rounded-lg p-4 border-l-4 border-primary">
-                <p className="text-sm font-medium text-foreground mb-1">💡 建議：</p>
-                <p className="text-sm text-muted-foreground">{scoreLevel.suggestion}</p>
-              </div>
+              <p className="text-lg text-muted-foreground">{scoreLevel.description}</p>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -205,7 +195,7 @@ export default function LogicResultsPage() {
                   const userAnswer = results.answers[index]
                   const isCorrect = userAnswer === question.correct_answer
                   
-                  // 獲取選項文字
+                  // 根據選項字母獲取對應的選項文字
                   const getOptionText = (option: string) => {
                     switch (option) {
                       case 'A': return question.option_a
@@ -213,12 +203,12 @@ export default function LogicResultsPage() {
                       case 'C': return question.option_c
                       case 'D': return question.option_d
                       case 'E': return question.option_e
-                      default: return '未知選項'
+                      default: return "未作答"
                     }
                   }
 
                   const correctOptionText = getOptionText(question.correct_answer)
-                  const userOptionText = userAnswer ? getOptionText(userAnswer) : '未作答'
+                  const userOptionText = userAnswer ? getOptionText(userAnswer) : "未作答"
 
                   return (
                     <div key={question.id} className="border rounded-lg p-4">

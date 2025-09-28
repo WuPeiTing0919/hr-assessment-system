@@ -65,8 +65,7 @@ pnpm install
 | option_b | VARCHAR(500) | 選項 B |
 | option_c | VARCHAR(500) | 選項 C |
 | option_d | VARCHAR(500) | 選項 D |
-| option_e | VARCHAR(500) | 選項 E |
-| correct_answer | ENUM('A', 'B', 'C', 'D', 'E') | 正確答案 |
+| correct_answer | ENUM('A', 'B', 'C', 'D') | 正確答案 |
 | explanation | TEXT | 解說 |
 | created_at | TIMESTAMP | 建立時間 |
 
@@ -89,8 +88,6 @@ npx tsx lib/database/seed.ts
 - `npm run test-db` - 測試資料庫連接
 - `npm run check-passwords` - 檢查密碼雜湊狀態
 - `npm run check-logic-questions` - 檢查邏輯思維題目
-- `npm run test-logic-flow` - 測試邏輯思維測試完整流程
-- `npm run update-logic-table` - 更新邏輯思維題目表結構（加入 E 選項）
 - `npm run reset-users` - 重新建立用戶數據（使用雜湊密碼）
 - `npm run seed-logic-questions` - 上傳邏輯思維題目到資料庫
 - `npm run test-login` - 測試登入功能（需要先啟動開發伺服器）
