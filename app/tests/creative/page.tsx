@@ -7,16 +7,49 @@ import { Button } from "@/components/ui/button"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
-import { creativeQuestions } from "@/lib/questions/creative-questions"
+
+interface CreativeQuestion {
+  id: number
+  statement: string
+  category: 'innovation' | 'imagination' | 'flexibility' | 'originality'
+  is_reverse: boolean
+  created_at: string
+}
 
 export default function CreativeTestPage() {
   const router = useRouter()
+  const [questions, setQuestions] = useState<CreativeQuestion[]>([])
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [answers, setAnswers] = useState<Record<number, number>>({})
   const [timeRemaining, setTimeRemaining] = useState(30 * 60) // 30 minutes in seconds
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Load questions from database
+  useEffect(() => {
+    const loadQuestions = async () => {
+      try {
+        const response = await fetch('/api/creative-questions')
+        const data = await response.json()
+
+        if (data.success) {
+          setQuestions(data.questions)
+        } else {
+          console.error('Failed to load questions:', data.error)
+        }
+      } catch (error) {
+        console.error('Error loading questions:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadQuestions()
+  }, [])
 
   // Timer effect
   useEffect(() => {
+    if (questions.length === 0) return
+
     const timer = setInterval(() => {
       setTimeRemaining((prev) => {
         if (prev <= 1) {
@@ -28,7 +61,7 @@ export default function CreativeTestPage() {
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [])
+  }, [questions])
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
@@ -44,7 +77,7 @@ export default function CreativeTestPage() {
   }
 
   const handleNext = () => {
-    if (currentQuestion < creativeQuestions.length - 1) {
+    if (currentQuestion < questions.length - 1) {
       setCurrentQuestion((prev) => prev + 1)
     }
   }
@@ -58,13 +91,14 @@ export default function CreativeTestPage() {
   const handleSubmit = () => {
     // Calculate score based on creativity scoring
     let totalScore = 0
-    creativeQuestions.forEach((question, index) => {
+    questions.forEach((question, index) => {
       const answer = answers[index] || 1
       // For creativity, higher scores indicate more creative thinking
-      totalScore += question.isReverse ? 6 - answer : answer
+      // 反向題：選擇 5 得 1 分，選擇 1 得 5 分
+      totalScore += question.is_reverse ? 6 - answer : answer
     })
 
-    const maxScore = creativeQuestions.length * 5
+    const maxScore = questions.length * 5
     const score = Math.round((totalScore / maxScore) * 100)
 
     // Store results in localStorage
@@ -81,8 +115,41 @@ export default function CreativeTestPage() {
     router.push("/results/creative")
   }
 
-  const currentQ = creativeQuestions[currentQuestion]
-  const isLastQuestion = currentQuestion === creativeQuestions.length - 1
+  if (isLoading) {
+    return (
+      <TestLayout
+        title="創意能力測試"
+        currentQuestion={0}
+        totalQuestions={0}
+        timeRemaining="00:00"
+        onBack={() => router.push("/")}
+      >
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">載入題目中...</p>
+        </div>
+      </TestLayout>
+    )
+  }
+
+  if (questions.length === 0) {
+    return (
+      <TestLayout
+        title="創意能力測試"
+        currentQuestion={0}
+        totalQuestions={0}
+        timeRemaining="00:00"
+        onBack={() => router.push("/")}
+      >
+        <div className="max-w-4xl mx-auto text-center">
+          <p className="text-muted-foreground">無法載入題目，請稍後再試</p>
+        </div>
+      </TestLayout>
+    )
+  }
+
+  const currentQ = questions[currentQuestion]
+  const isLastQuestion = currentQuestion === questions.length - 1
   const hasAnswer = answers[currentQuestion] !== undefined
 
   const scaleOptions = [
@@ -97,7 +164,7 @@ export default function CreativeTestPage() {
     <TestLayout
       title="創意能力測試"
       currentQuestion={currentQuestion + 1}
-      totalQuestions={creativeQuestions.length}
+      totalQuestions={questions.length}
       timeRemaining={formatTime(timeRemaining)}
       onBack={() => router.push("/")}
     >
@@ -125,7 +192,6 @@ export default function CreativeTestPage() {
                   >
                     {option.label}
                   </Label>
-                  <div className="text-sm text-muted-foreground font-mono">{option.value}</div>
                 </div>
               ))}
             </RadioGroup>
@@ -139,7 +205,7 @@ export default function CreativeTestPage() {
           </Button>
 
           <div className="flex gap-2 max-w-md overflow-x-auto">
-            {creativeQuestions.map((_, index) => (
+            {questions.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentQuestion(index)}
@@ -169,7 +235,7 @@ export default function CreativeTestPage() {
 
         {/* Progress Summary */}
         <div className="mt-8 text-center text-sm text-muted-foreground">
-          已完成 {Object.keys(answers).length} / {creativeQuestions.length} 題
+          已完成 {Object.keys(answers).length} / {questions.length} 題
         </div>
       </div>
     </TestLayout>

@@ -11,11 +11,15 @@
     "test-login": "node scripts/test-login.js",
     "check-passwords": "node scripts/check-passwords.js",
     "check-logic-questions": "node scripts/check-logic-questions.js",
+    "check-creative-questions": "node scripts/check-creative-questions.js",
     "test-score-levels": "node scripts/test-score-levels.js",
     "test-responsive-design": "node scripts/test-responsive-design.js",
+    "test-reverse-scoring": "node scripts/test-reverse-scoring.js",
+    "test-creative-flow": "node scripts/test-creative-flow.js",
     "update-logic-table": "node scripts/update-logic-table.js",
     "seed-db": "npx tsx lib/database/seed.ts",
     "seed-logic-questions": "npx tsx lib/database/seed-logic-questions.ts",
+    "seed-creative-questions": "npx tsx lib/database/seed-creative-questions.ts",
     "reset-users": "npx tsx lib/database/reset-users.ts"
   },
   "dependencies": {
