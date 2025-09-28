@@ -167,6 +167,9 @@ export default function LogicTestPage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="text-xl text-balance">{currentQ.question}</CardTitle>
+            <p className="text-sm text-muted-foreground mt-2">
+              請仔細閱讀題目，選擇最正確的答案，每題均為單選。
+            </p>
           </CardHeader>
           <CardContent>
             <RadioGroup value={answers[currentQuestion] || ""} onValueChange={handleAnswerChange} className="space-y-4">

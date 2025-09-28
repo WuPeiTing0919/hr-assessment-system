@@ -266,10 +266,15 @@ export default function CombinedTestPage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="text-xl text-balance">
-              {phase === "logic" ? currentQ.question : currentQ.statement}
+              {phase === "logic" ? (currentQ as LogicQuestion).question : (currentQ as CreativeQuestion).statement}
             </CardTitle>
+            {phase === "logic" && (
+              <p className="text-sm text-muted-foreground mt-2">
+                請仔細閱讀題目，選擇最正確的答案，每題均為單選。
+              </p>
+            )}
             {phase === "creative" && (
-              <p className="text-sm text-muted-foreground">請根據這個描述與你的實際情況的符合程度進行選擇</p>
+              <p className="text-sm text-muted-foreground">請根據您的實際情況，選擇最符合的選項（5=非常符合，1=完全不符合）。</p>
             )}
           </CardHeader>
           <CardContent>
