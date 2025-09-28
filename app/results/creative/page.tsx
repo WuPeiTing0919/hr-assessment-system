@@ -113,7 +113,7 @@ export default function CreativeResultsPage() {
             <div>
               <h1 className="text-xl font-bold text-foreground">創意能力測試結果</h1>
               <p className="text-sm text-muted-foreground">
-                完成時間：{new Date(results.completedAt).toLocaleString("zh-TW")}
+                完成時間：{new Date(results.completedAt).toLocaleString("zh-TW", { timeZone: "Asia/Taipei" })}
               </p>
             </div>
           </div>

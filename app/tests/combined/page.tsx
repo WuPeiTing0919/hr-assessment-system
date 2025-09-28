@@ -290,11 +290,11 @@ export default function CombinedTestPage() {
               {phase === "logic"
                 ? // Logic question options
                   [
-                    { value: 'A', text: currentQ.option_a },
-                    { value: 'B', text: currentQ.option_b },
-                    { value: 'C', text: currentQ.option_c },
-                    { value: 'D', text: currentQ.option_d },
-                    { value: 'E', text: currentQ.option_e }
+                    { value: 'A', text: (currentQ as LogicQuestion).option_a },
+                    { value: 'B', text: (currentQ as LogicQuestion).option_b },
+                    { value: 'C', text: (currentQ as LogicQuestion).option_c },
+                    { value: 'D', text: (currentQ as LogicQuestion).option_d },
+                    { value: 'E', text: (currentQ as LogicQuestion).option_e }
                   ].map((option, index) => (
                     <div
                       key={index}

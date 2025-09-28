@@ -2,6 +2,8 @@ import { testConnection } from './connection'
 import { createUsersTable } from './models/user'
 import { createLogicQuestionsTable } from './models/logic_question'
 import { createCreativeQuestionsTable } from './models/creative_question'
+import { createTestResultsTable } from './models/test_result'
+import { createLogicTestAnswersTable } from './models/logic_test_answer'
 
 // 初始化資料庫
 export async function initializeDatabase(): Promise<boolean> {
@@ -23,6 +25,12 @@ export async function initializeDatabase(): Promise<boolean> {
 
     // 建立創意能力測試題目表
     await createCreativeQuestionsTable()
+
+    // 建立測試結果表
+    await createTestResultsTable()
+
+    // 建立邏輯測驗答案表
+    await createLogicTestAnswersTable()
 
     console.log('✅ 資料庫初始化完成')
     return true

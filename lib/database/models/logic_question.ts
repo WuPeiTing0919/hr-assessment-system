@@ -84,13 +84,13 @@ export async function findLogicQuestionById(id: number): Promise<LogicQuestion |
 // 獲取所有題目
 export async function getAllLogicQuestions(): Promise<LogicQuestion[]> {
   const query = 'SELECT * FROM logic_questions ORDER BY created_at'
-  return await executeQuery<LogicQuestion[]>(query)
+  return await executeQuery<LogicQuestion>(query)
 }
 
 // 獲取隨機題目
 export async function getRandomLogicQuestions(limit: number = 10): Promise<LogicQuestion[]> {
   const query = 'SELECT * FROM logic_questions ORDER BY RAND() LIMIT ?'
-  return await executeQuery<LogicQuestion[]>(query, [limit])
+  return await executeQuery<LogicQuestion>(query, [limit])
 }
 
 // 清空所有題目

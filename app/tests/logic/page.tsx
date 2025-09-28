@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/lib/hooks/use-auth"
 
 interface LogicQuestion {
   id: number
@@ -23,11 +24,13 @@ interface LogicQuestion {
 
 export default function LogicTestPage() {
   const router = useRouter()
+  const { user } = useAuth()
   const [questions, setQuestions] = useState<LogicQuestion[]>([])
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [answers, setAnswers] = useState<Record<number, string>>({})
   const [timeRemaining, setTimeRemaining] = useState(20 * 60) // 20 minutes in seconds
   const [isLoading, setIsLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Load questions from database
   useEffect(() => {
@@ -93,29 +96,88 @@ export default function LogicTestPage() {
     }
   }
 
-  const handleSubmit = () => {
-    // Calculate score
-    let correctAnswers = 0
-    questions.forEach((question, index) => {
-      if (answers[index] === question.correct_answer) {
-        correctAnswers++
-      }
-    })
-
-    const score = Math.round((correctAnswers / questions.length) * 100)
-
-    // Store results in localStorage
-    const results = {
-      type: "logic",
-      score,
-      correctAnswers,
-      totalQuestions: questions.length,
-      answers,
-      completedAt: new Date().toISOString(),
+  const handleSubmit = async () => {
+    console.log('🔍 開始提交邏輯測驗...')
+    console.log('用戶狀態:', user)
+    
+    if (!user) {
+      console.log('❌ 用戶未登入')
+      alert('請先登入')
+      return
     }
 
-    localStorage.setItem("logicTestResults", JSON.stringify(results))
-    router.push("/results/logic")
+    console.log('✅ 用戶已登入，用戶ID:', user.id)
+    setIsSubmitting(true)
+
+    try {
+      // Calculate score
+      let correctAnswers = 0
+      questions.forEach((question, index) => {
+        if (answers[index] === question.correct_answer) {
+          correctAnswers++
+        }
+      })
+
+      const score = Math.round((correctAnswers / questions.length) * 100)
+      const completedAt = new Date().toISOString().replace('Z', '').replace('T', ' ')
+
+      console.log('📊 測驗結果計算:')
+      console.log('答對題數:', correctAnswers)
+      console.log('總題數:', questions.length)
+      console.log('分數:', score)
+      console.log('完成時間:', completedAt)
+
+      // Store results in localStorage (for backward compatibility)
+      const results = {
+        type: "logic",
+        score,
+        correctAnswers,
+        totalQuestions: questions.length,
+        answers,
+        completedAt,
+      }
+
+      localStorage.setItem("logicTestResults", JSON.stringify(results))
+      console.log('✅ 結果已儲存到 localStorage')
+
+      // Upload to database
+      console.log('🔄 開始上傳到資料庫...')
+      const uploadData = {
+        userId: user.id,
+        answers: Object.values(answers),
+        completedAt: completedAt
+      }
+      console.log('上傳數據:', uploadData)
+
+      const uploadResponse = await fetch('/api/test-results/logic', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(uploadData)
+      })
+
+      console.log('📡 API 響應狀態:', uploadResponse.status)
+      const uploadResult = await uploadResponse.json()
+      console.log('📡 API 響應內容:', uploadResult)
+
+      if (uploadResult.success) {
+        console.log('✅ 邏輯測驗結果已上傳到資料庫')
+        console.log('測試結果ID:', uploadResult.data.testResult.id)
+        console.log('答案記錄數量:', uploadResult.data.answerCount)
+      } else {
+        console.error('❌ 上傳到資料庫失敗:', uploadResult.error)
+        // 即使上傳失敗，也繼續顯示結果
+      }
+
+      router.push("/results/logic")
+
+    } catch (error) {
+      console.error('❌ 提交測驗失敗:', error)
+      alert('提交測驗失敗，請重試')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   if (isLoading) {
@@ -204,11 +266,11 @@ export default function LogicTestPage() {
             {isLastQuestion ? (
               <Button
                 onClick={handleSubmit}
-                disabled={!hasAnswer}
+                disabled={!hasAnswer || isSubmitting}
                 className="bg-green-600 hover:bg-green-700"
                 size="sm"
               >
-                提交測試
+                {isSubmitting ? '提交中...' : '提交測試'}
               </Button>
             ) : (
               <Button onClick={handleNext} disabled={!hasAnswer} size="sm">

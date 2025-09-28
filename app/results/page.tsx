@@ -14,6 +14,7 @@ interface TestResult {
   type: "logic" | "creative" | "combined"
   score: number
   completedAt: string
+  testCount?: number
   details?: any
 }
 
@@ -33,66 +34,34 @@ function ResultsContent() {
     averageScore: 0,
     bestScore: 0,
     lastTestDate: null as string | null,
+    testCounts: {
+      logic: 0,
+      creative: 0,
+      combined: 0
+    }
   })
 
   useEffect(() => {
-    // Load all test results from localStorage
-    const logicResults = localStorage.getItem("logicTestResults")
-    const creativeResults = localStorage.getItem("creativeTestResults")
-    const combinedResults = localStorage.getItem("combinedTestResults")
+    const loadUserResults = async () => {
+      if (!user) return
 
-    const allResults: TestResult[] = []
+      try {
+        const response = await fetch(`/api/user/test-results?userId=${user.id}`)
+        const data = await response.json()
 
-    if (logicResults) {
-      const data = JSON.parse(logicResults)
-      allResults.push({
-        type: "logic",
-        score: data.score,
-        completedAt: data.completedAt,
-        details: data,
-      })
+        if (data.success) {
+          setResults(data.data.results)
+          setStats(data.data.stats)
+        } else {
+          console.error('Failed to load user results:', data.error)
+        }
+      } catch (error) {
+        console.error('Error loading user results:', error)
+      }
     }
 
-    if (creativeResults) {
-      const data = JSON.parse(creativeResults)
-      allResults.push({
-        type: "creative",
-        score: data.score,
-        completedAt: data.completedAt,
-        details: data,
-      })
-    }
-
-    if (combinedResults) {
-      const data = JSON.parse(combinedResults)
-      allResults.push({
-        type: "combined",
-        score: data.overallScore,
-        completedAt: data.completedAt,
-        details: data,
-      })
-    }
-
-    // Sort by completion date (newest first)
-    allResults.sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime())
-
-    setResults(allResults)
-
-    // Calculate statistics
-    if (allResults.length > 0) {
-      const totalScore = allResults.reduce((sum, result) => sum + result.score, 0)
-      const averageScore = Math.round(totalScore / allResults.length)
-      const bestScore = Math.max(...allResults.map((r) => r.score))
-      const lastTestDate = allResults[0].completedAt
-
-      setStats({
-        totalTests: allResults.length,
-        averageScore,
-        bestScore,
-        lastTestDate,
-      })
-    }
-  }, [])
+    loadUserResults()
+  }, [user])
 
   const getTestTypeInfo = (type: string) => {
     switch (type) {
@@ -263,7 +232,7 @@ function ResultsContent() {
                   <Calendar className="w-6 h-6 text-accent" />
                 </div>
                 <div className="text-sm font-bold text-foreground mb-1">
-                  {stats.lastTestDate ? new Date(stats.lastTestDate).toLocaleDateString("zh-TW") : "無"}
+                  {stats.lastTestDate ? new Date(stats.lastTestDate).toLocaleDateString("zh-TW", { timeZone: "Asia/Taipei" }) : "無"}
                 </div>
                 <div className="text-sm text-muted-foreground">最近測試</div>
               </CardContent>
@@ -295,8 +264,13 @@ function ResultsContent() {
                           <div className="min-w-0 flex-1">
                             <h3 className="font-medium text-foreground">{testInfo.name}</h3>
                             <p className="text-sm text-muted-foreground">
-                              完成時間：{new Date(result.completedAt).toLocaleString("zh-TW")}
+                              完成時間：{new Date(result.completedAt).toLocaleString("zh-TW", { timeZone: "Asia/Taipei" })}
                             </p>
+                            {result.testCount && result.testCount > 1 && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                已測驗 {result.testCount} 次
+                              </p>
+                            )}
                           </div>
                         </div>
 
