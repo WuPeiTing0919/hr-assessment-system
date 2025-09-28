@@ -10,7 +10,11 @@
     "test-db": "node scripts/test-db.js",
     "test-login": "node scripts/test-login.js",
     "check-passwords": "node scripts/check-passwords.js",
+    "check-logic-questions": "node scripts/check-logic-questions.js",
+    "test-logic-flow": "node scripts/test-logic-flow.js",
+    "update-logic-table": "node scripts/update-logic-table.js",
     "seed-db": "npx tsx lib/database/seed.ts",
+    "seed-logic-questions": "npx tsx lib/database/seed-logic-questions.ts",
     "reset-users": "npx tsx lib/database/reset-users.ts"
   },
   "dependencies": {

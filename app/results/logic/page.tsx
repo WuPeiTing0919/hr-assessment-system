@@ -7,7 +7,19 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { CheckCircle, XCircle, Brain, Home, RotateCcw } from "lucide-react"
 import Link from "next/link"
-import { logicQuestions } from "@/lib/questions/logic-questions"
+
+interface LogicQuestion {
+  id: number
+  question: string
+  option_a: string
+  option_b: string
+  option_c: string
+  option_d: string
+  option_e: string
+  correct_answer: 'A' | 'B' | 'C' | 'D' | 'E'
+  explanation?: string
+  created_at: string
+}
 
 interface LogicTestResults {
   type: string
@@ -20,13 +32,47 @@ interface LogicTestResults {
 
 export default function LogicResultsPage() {
   const [results, setResults] = useState<LogicTestResults | null>(null)
+  const [questions, setQuestions] = useState<LogicQuestion[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const savedResults = localStorage.getItem("logicTestResults")
-    if (savedResults) {
-      setResults(JSON.parse(savedResults))
+    const loadData = async () => {
+      try {
+        // 載入測試結果
+        const savedResults = localStorage.getItem("logicTestResults")
+        if (savedResults) {
+          setResults(JSON.parse(savedResults))
+        }
+
+        // 載入題目數據
+        const response = await fetch('/api/logic-questions')
+        const data = await response.json()
+        
+        if (data.success) {
+          setQuestions(data.questions)
+        }
+      } catch (error) {
+        console.error('載入數據失敗:', error)
+      } finally {
+        setIsLoading(false)
+      }
     }
+
+    loadData()
   }, [])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="text-center py-8">
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-muted-foreground">載入結果中...</p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   if (!results) {
     return (
@@ -44,11 +90,44 @@ export default function LogicResultsPage() {
   }
 
   const getScoreLevel = (score: number) => {
-    if (score >= 90) return { level: "優秀", color: "bg-green-500", description: "邏輯思維能力出色" }
-    if (score >= 80) return { level: "良好", color: "bg-blue-500", description: "邏輯思維能力較強" }
-    if (score >= 70) return { level: "中等", color: "bg-yellow-500", description: "邏輯思維能力一般" }
-    if (score >= 60) return { level: "及格", color: "bg-orange-500", description: "邏輯思維能力需要提升" }
-    return { level: "不及格", color: "bg-red-500", description: "邏輯思維能力有待加強" }
+    if (score === 100) {
+      return { 
+        level: "邏輯巔峰者", 
+        color: "bg-purple-600", 
+        description: "近乎完美的邏輯典範！你像一台「推理引擎」，嚴謹又高效，幾乎不受陷阱干擾。",
+        suggestion: "多和他人分享你的思考路徑，能幫助團隊整體邏輯力提升。"
+      }
+    }
+    if (score >= 80) {
+      return { 
+        level: "邏輯大師", 
+        color: "bg-green-600", 
+        description: "你的思維如同精密儀器，能快速抓住題目關鍵，並做出有效推理。常常是團隊中「冷靜的分析者」。",
+        suggestion: "挑戰更高層次的難題，讓你的邏輯力更加精進。"
+      }
+    }
+    if (score >= 60) {
+      return { 
+        level: "邏輯高手", 
+        color: "bg-blue-500", 
+        description: "邏輯清晰穩定，大部分情境都能正確判斷。偶爾會因粗心錯過陷阱。",
+        suggestion: "在思維縝密之餘，更加留心細節，就能把錯誤率降到最低。"
+      }
+    }
+    if (score >= 30) {
+      return { 
+        level: "邏輯學徒", 
+        color: "bg-yellow-500", 
+        description: "已經抓到一些邏輯規律，能解決中等難度的問題。遇到複雜情境時，仍可能卡關。",
+        suggestion: "嘗試將問題拆解成小步驟，就像組裝樂高，每一塊拼好，答案就自然浮現。"
+      }
+    }
+    return { 
+      level: "邏輯探險新手", 
+      color: "bg-red-500", 
+      description: "還在邏輯森林的入口徘徊。思考時可能忽略細節，或被陷阱誤導。",
+      suggestion: "多練習經典邏輯題，像是在拼拼圖般，慢慢建立清晰的分析步驟。"
+    }
   }
 
   const scoreLevel = getScoreLevel(results.score)
@@ -88,7 +167,11 @@ export default function LogicResultsPage() {
                   {scoreLevel.level}
                 </Badge>
               </div>
-              <p className="text-lg text-muted-foreground">{scoreLevel.description}</p>
+              <p className="text-lg text-muted-foreground mb-4">{scoreLevel.description}</p>
+              <div className="bg-muted/50 rounded-lg p-4 border-l-4 border-primary">
+                <p className="text-sm font-medium text-foreground mb-1">💡 建議：</p>
+                <p className="text-sm text-muted-foreground">{scoreLevel.suggestion}</p>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -118,11 +201,24 @@ export default function LogicResultsPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {logicQuestions.map((question, index) => {
+                {questions.map((question, index) => {
                   const userAnswer = results.answers[index]
-                  const isCorrect = userAnswer === question.correctAnswer
-                  const correctOption = question.options.find((opt) => opt.value === question.correctAnswer)
-                  const userOption = question.options.find((opt) => opt.value === userAnswer)
+                  const isCorrect = userAnswer === question.correct_answer
+                  
+                  // 獲取選項文字
+                  const getOptionText = (option: string) => {
+                    switch (option) {
+                      case 'A': return question.option_a
+                      case 'B': return question.option_b
+                      case 'C': return question.option_c
+                      case 'D': return question.option_d
+                      case 'E': return question.option_e
+                      default: return '未知選項'
+                    }
+                  }
+
+                  const correctOptionText = getOptionText(question.correct_answer)
+                  const userOptionText = userAnswer ? getOptionText(userAnswer) : '未作答'
 
                   return (
                     <div key={question.id} className="border rounded-lg p-4">
@@ -142,18 +238,18 @@ export default function LogicResultsPage() {
                             <div className="flex items-center gap-2">
                               <span className="text-muted-foreground">你的答案：</span>
                               <Badge variant={isCorrect ? "default" : "destructive"}>
-                                {userOption?.text || "未作答"}
+                                {userAnswer ? `${userAnswer}. ${userOptionText}` : "未作答"}
                               </Badge>
                             </div>
                             {!isCorrect && (
                               <div className="flex items-center gap-2">
                                 <span className="text-muted-foreground">正確答案：</span>
                                 <Badge variant="outline" className="border-green-500 text-green-700">
-                                  {correctOption?.text}
+                                  {question.correct_answer}. {correctOptionText}
                                 </Badge>
                               </div>
                             )}
-                            {question.explanation && !isCorrect && (
+                            {question.explanation && (
                               <div className="mt-2 p-3 bg-muted/50 rounded text-sm">
                                 <strong>解析：</strong>
                                 {question.explanation}

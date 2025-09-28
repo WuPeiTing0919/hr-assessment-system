@@ -1,5 +1,6 @@
 import { testConnection } from './connection'
 import { createUsersTable } from './models/user'
+import { createLogicQuestionsTable } from './models/logic_question'
 
 // 初始化資料庫
 export async function initializeDatabase(): Promise<boolean> {
@@ -15,6 +16,9 @@ export async function initializeDatabase(): Promise<boolean> {
     
     // 建立用戶表
     await createUsersTable()
+    
+    // 建立邏輯思維題目表
+    await createLogicQuestionsTable()
     
     console.log('✅ 資料庫初始化完成')
     return true
