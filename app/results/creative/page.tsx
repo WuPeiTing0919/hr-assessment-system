@@ -33,9 +33,9 @@ export default function CreativeResultsPage() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardContent className="text-center py-8">
-            <p className="text-muted-foreground mb-4">未找到测试结果</p>
+            <p className="text-muted-foreground mb-4">未找到測試結果</p>
             <Button asChild>
-              <Link href="/tests/creative">重新测试</Link>
+              <Link href="/tests/creative">重新測試</Link>
             </Button>
           </CardContent>
         </Card>
@@ -44,21 +44,21 @@ export default function CreativeResultsPage() {
   }
 
   const getCreativityLevel = (score: number) => {
-    if (score >= 85) return { level: "极具创意", color: "bg-purple-500", description: "拥有卓越的创新思维和想象力" }
-    if (score >= 75) return { level: "很有创意", color: "bg-blue-500", description: "具备较强的创造性思维能力" }
-    if (score >= 65) return { level: "有一定创意", color: "bg-green-500", description: "具有一定的创新潜力" }
-    if (score >= 50) return { level: "创意一般", color: "bg-yellow-500", description: "创造性思维有待提升" }
-    return { level: "缺乏创意", color: "bg-red-500", description: "需要培养创新思维能力" }
+    if (score >= 85) return { level: "極具創意", color: "bg-purple-500", description: "擁有卓越的創新思維和想像力" }
+    if (score >= 75) return { level: "很有創意", color: "bg-blue-500", description: "具備較強的創造性思維能力" }
+    if (score >= 65) return { level: "有一定創意", color: "bg-green-500", description: "具有一定的創新潛力" }
+    if (score >= 50) return { level: "創意一般", color: "bg-yellow-500", description: "創造性思維有待提升" }
+    return { level: "缺乏創意", color: "bg-red-500", description: "需要培養創新思維能力" }
   }
 
   const creativityLevel = getCreativityLevel(results.score)
 
   // Calculate category scores
   const categoryScores = {
-    innovation: { total: 0, count: 0, name: "创新能力" },
-    imagination: { total: 0, count: 0, name: "想象力" },
-    flexibility: { total: 0, count: 0, name: "灵活性" },
-    originality: { total: 0, count: 0, name: "原创性" },
+    innovation: { total: 0, count: 0, name: "創新能力" },
+    imagination: { total: 0, count: 0, name: "想像力" },
+    flexibility: { total: 0, count: 0, name: "靈活性" },
+    originality: { total: 0, count: 0, name: "原創性" },
   }
 
   creativeQuestions.forEach((question, index) => {
@@ -86,9 +86,9 @@ export default function CreativeResultsPage() {
               <Lightbulb className="w-6 h-6 text-accent-foreground" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">创意能力测试结果</h1>
+              <h1 className="text-xl font-bold text-foreground">創意能力測試結果</h1>
               <p className="text-sm text-muted-foreground">
-                完成时间：{new Date(results.completedAt).toLocaleString("zh-CN")}
+                完成時間：{new Date(results.completedAt).toLocaleString("zh-TW")}
               </p>
             </div>
           </div>
@@ -105,7 +105,7 @@ export default function CreativeResultsPage() {
               >
                 <span className="text-3xl font-bold text-white">{results.score}</span>
               </div>
-              <CardTitle className="text-3xl mb-2">创意测试完成！</CardTitle>
+              <CardTitle className="text-3xl mb-2">創意測試完成！</CardTitle>
               <div className="flex items-center justify-center gap-2 mb-4">
                 <Badge variant="secondary" className="text-lg px-4 py-1">
                   {creativityLevel.level}
@@ -139,7 +139,7 @@ export default function CreativeResultsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="w-5 h-5" />
-                能力维度分析
+                能力維度分析
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -163,20 +163,20 @@ export default function CreativeResultsPage() {
           {/* Detailed Feedback */}
           <Card>
             <CardHeader>
-              <CardTitle>详细反馈</CardTitle>
+              <CardTitle>詳細反饋</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="p-4 bg-muted/50 rounded-lg">
-                  <h3 className="font-medium mb-2">创意能力评估</h3>
+                  <h3 className="font-medium mb-2">創意能力評估</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    基于您的测试结果，您在创意思维方面表现为"{creativityLevel.level}"水平。
+                    基於您的測試結果，您在創意思維方面表現為「{creativityLevel.level}」水平。
                     {results.score >= 75 &&
-                      "您具备出色的创新思维能力，善于从不同角度思考问题，能够产生独特的想法和解决方案。"}
+                      "您具備出色的創新思維能力，善於從不同角度思考問題，能夠產生獨特的想法和解決方案。"}
                     {results.score >= 50 &&
                       results.score < 75 &&
-                      "您具有一定的创造性思维潜力，建议多参与创新活动，培养发散性思维。"}
-                    {results.score < 50 && "建议您多接触创新思维训练，培养好奇心和探索精神，提升创造性解决问题的能力。"}
+                      "您具有一定的創造性思維潛力，建議多參與創新活動，培養發散性思維。"}
+                    {results.score < 50 && "建議您多接觸創新思維訓練，培養好奇心和探索精神，提升創造性解決問題的能力。"}
                   </p>
                 </div>
 
@@ -189,9 +189,9 @@ export default function CreativeResultsPage() {
                         <span className="text-sm font-medium">{category.score}%</span>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        {category.score >= 80 && "表现优秀，继续保持"}
-                        {category.score >= 60 && category.score < 80 && "表现良好，有提升空间"}
-                        {category.score < 60 && "需要重点提升"}
+                        {category.score >= 80 && "表現優秀，繼續保持"}
+                        {category.score >= 60 && category.score < 80 && "表現良好，有提升空間"}
+                        {category.score < 60 && "需要重點提升"}
                       </p>
                     </div>
                   ))}
@@ -211,11 +211,11 @@ export default function CreativeResultsPage() {
             <Button asChild variant="outline" size="lg">
               <Link href="/tests/creative">
                 <RotateCcw className="w-4 h-4 mr-2" />
-                重新测试
+                重新測試
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <Link href="/tests/logic">开始逻辑测试</Link>
+              <Link href="/tests/logic">開始邏輯測試</Link>
             </Button>
           </div>
         </div>

@@ -44,9 +44,9 @@ export default function CombinedResultsPage() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardContent className="text-center py-8">
-            <p className="text-muted-foreground mb-4">未找到测试结果</p>
+            <p className="text-muted-foreground mb-4">未找到測試結果</p>
             <Button asChild>
-              <Link href="/tests/combined">重新测试</Link>
+              <Link href="/tests/combined">重新測試</Link>
             </Button>
           </CardContent>
         </Card>
@@ -74,9 +74,9 @@ export default function CombinedResultsPage() {
               <BarChart3 className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">综合能力测试结果</h1>
+              <h1 className="text-xl font-bold text-foreground">綜合能力測試結果</h1>
               <p className="text-sm text-muted-foreground">
-                完成时间：{new Date(results.completedAt).toLocaleString("zh-CN")}
+                完成時間：{new Date(results.completedAt).toLocaleString("zh-TW")}
               </p>
             </div>
           </div>
@@ -91,7 +91,7 @@ export default function CombinedResultsPage() {
               <div className="w-32 h-32 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-4xl font-bold text-white">{results.overallScore}</span>
               </div>
-              <CardTitle className="text-4xl mb-2">综合评估完成！</CardTitle>
+              <CardTitle className="text-4xl mb-2">綜合評估完成！</CardTitle>
               <div className="flex items-center justify-center gap-2 mb-4">
                 <Badge className="bg-gradient-to-r from-primary to-accent text-white text-xl px-6 py-2">
                   {results.level}
@@ -106,13 +106,13 @@ export default function CombinedResultsPage() {
                   <div className={`text-3xl font-bold mb-2 ${getScoreColor(results.logicScore)}`}>
                     {results.logicScore}
                   </div>
-                  <div className="text-sm text-muted-foreground">逻辑思维</div>
+                  <div className="text-sm text-muted-foreground">邏輯思維</div>
                 </div>
                 <div className="text-center">
                   <div className={`text-3xl font-bold mb-2 ${getScoreColor(results.creativityScore)}`}>
                     {results.creativityScore}
                   </div>
-                  <div className="text-sm text-muted-foreground">创意能力</div>
+                  <div className="text-sm text-muted-foreground">創意能力</div>
                 </div>
                 <div className="text-center">
                   <div className={`text-3xl font-bold mb-2 ${getScoreColor(results.breakdown.balance)}`}>
@@ -131,7 +131,7 @@ export default function CombinedResultsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Brain className="w-5 h-5 text-primary" />
-                  逻辑思维测试
+                  邏輯思維測試
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -146,11 +146,11 @@ export default function CombinedResultsPage() {
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div className="text-center p-3 bg-muted/50 rounded">
                       <div className="font-bold text-green-600">{results.logicCorrect}</div>
-                      <div className="text-muted-foreground">答对题数</div>
+                      <div className="text-muted-foreground">答對題數</div>
                     </div>
                     <div className="text-center p-3 bg-muted/50 rounded">
                       <div className="font-bold text-primary">10</div>
-                      <div className="text-muted-foreground">总题数</div>
+                      <div className="text-muted-foreground">總題數</div>
                     </div>
                   </div>
                 </div>
@@ -162,7 +162,7 @@ export default function CombinedResultsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Lightbulb className="w-5 h-5 text-accent" />
-                  创意能力测试
+                  創意能力測試
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -177,11 +177,11 @@ export default function CombinedResultsPage() {
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div className="text-center p-3 bg-muted/50 rounded">
                       <div className="font-bold text-accent">{results.creativityTotal}</div>
-                      <div className="text-muted-foreground">总得分</div>
+                      <div className="text-muted-foreground">總得分</div>
                     </div>
                     <div className="text-center p-3 bg-muted/50 rounded">
                       <div className="font-bold text-primary">{results.creativityMaxScore}</div>
-                      <div className="text-muted-foreground">满分</div>
+                      <div className="text-muted-foreground">滿分</div>
                     </div>
                   </div>
                 </div>
@@ -201,28 +201,28 @@ export default function CombinedResultsPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="text-center p-6 border rounded-lg">
                   <Brain className="w-12 h-12 text-primary mx-auto mb-4" />
-                  <h3 className="font-semibold mb-2">逻辑思维</h3>
+                  <h3 className="font-semibold mb-2">邏輯思維</h3>
                   <div className={`text-2xl font-bold mb-2 ${getScoreColor(results.logicScore)}`}>
                     {results.logicScore}分
                   </div>
                   <Progress value={results.logicScore} className="h-2 mb-2" />
                   <p className="text-sm text-muted-foreground">
-                    {results.logicScore >= 80 ? "表现优秀" : results.logicScore >= 60 ? "表现良好" : "需要提升"}
+                    {results.logicScore >= 80 ? "表現優秀" : results.logicScore >= 60 ? "表現良好" : "需要提升"}
                   </p>
                 </div>
 
                 <div className="text-center p-6 border rounded-lg">
                   <Lightbulb className="w-12 h-12 text-accent mx-auto mb-4" />
-                  <h3 className="font-semibold mb-2">创意能力</h3>
+                  <h3 className="font-semibold mb-2">創意能力</h3>
                   <div className={`text-2xl font-bold mb-2 ${getScoreColor(results.creativityScore)}`}>
                     {results.creativityScore}分
                   </div>
                   <Progress value={results.creativityScore} className="h-2 mb-2" />
                   <p className="text-sm text-muted-foreground">
                     {results.creativityScore >= 80
-                      ? "表现优秀"
+                      ? "表現優秀"
                       : results.creativityScore >= 60
-                        ? "表现良好"
+                        ? "表現良好"
                         : "需要提升"}
                   </p>
                 </div>
@@ -238,8 +238,8 @@ export default function CombinedResultsPage() {
                     {results.breakdown.balance >= 80
                       ? "非常均衡"
                       : results.breakdown.balance >= 60
-                        ? "相对均衡"
-                        : "发展不均"}
+                        ? "相對均衡"
+                        : "發展不均"}
                   </p>
                 </div>
               </div>
@@ -252,7 +252,7 @@ export default function CombinedResultsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Award className="w-5 h-5" />
-                  发展建议
+                  發展建議
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -275,17 +275,17 @@ export default function CombinedResultsPage() {
             <Button asChild size="lg">
               <Link href="/">
                 <Home className="w-4 h-4 mr-2" />
-                返回首页
+                返回首頁
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg">
               <Link href="/tests/combined">
                 <RotateCcw className="w-4 h-4 mr-2" />
-                重新测试
+                重新測試
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <Link href="/results">查看所有成绩</Link>
+              <Link href="/results">查看所有成績</Link>
             </Button>
           </div>
         </div>

@@ -86,11 +86,11 @@ export default function CreativeTestPage() {
   const hasAnswer = answers[currentQuestion] !== undefined
 
   const scaleOptions = [
-    { value: "5", label: "我最符合", color: "text-green-600" },
-    { value: "4", label: "比较符合", color: "text-green-500" },
-    { value: "3", label: "一般", color: "text-yellow-500" },
-    { value: "2", label: "不太符合", color: "text-orange-500" },
-    { value: "1", label: "与我不符", color: "text-red-500" },
+    { value: "5", label: "我最符合", color: "text-green-600", bgColor: "bg-green-50" },
+    { value: "4", label: "比較符合", color: "text-green-500", bgColor: "bg-green-50" },
+    { value: "3", label: "一般", color: "text-yellow-500", bgColor: "bg-yellow-50" },
+    { value: "2", label: "不太符合", color: "text-orange-500", bgColor: "bg-orange-50" },
+    { value: "1", label: "與我不符", color: "text-red-500", bgColor: "bg-red-50" },
   ]
 
   return (
@@ -116,7 +116,7 @@ export default function CreativeTestPage() {
               {scaleOptions.map((option) => (
                 <div
                   key={option.value}
-                  className="flex items-center space-x-4 p-4 rounded-lg border hover:bg-muted/50 transition-colors"
+                  className={`flex items-center space-x-4 p-4 rounded-lg border ${option.bgColor} hover:bg-muted/50 transition-colors`}
                 >
                   <RadioGroupItem value={option.value} id={`option-${option.value}`} />
                   <Label

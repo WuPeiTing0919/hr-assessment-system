@@ -11,9 +11,9 @@ export function calculateLogicScore(correctAnswers: number, totalQuestions: numb
   if (score >= 90) {
     return {
       score,
-      level: "优秀",
+      level: "優秀",
       color: "bg-green-500",
-      description: "逻辑思维能力出色，具备卓越的分析和推理能力",
+      description: "邏輯思維能力出色，具備卓越的分析和推理能力",
     }
   }
   if (score >= 80) {
@@ -21,7 +21,7 @@ export function calculateLogicScore(correctAnswers: number, totalQuestions: numb
       score,
       level: "良好",
       color: "bg-blue-500",
-      description: "逻辑思维能力较强，能够有效分析和解决问题",
+      description: "邏輯思維能力較強，能夠有效分析和解決問題",
     }
   }
   if (score >= 70) {
@@ -29,7 +29,7 @@ export function calculateLogicScore(correctAnswers: number, totalQuestions: numb
       score,
       level: "中等",
       color: "bg-yellow-500",
-      description: "逻辑思维能力一般，有一定的分析能力",
+      description: "邏輯思維能力一般，有一定的分析能力",
     }
   }
   if (score >= 60) {
@@ -37,14 +37,14 @@ export function calculateLogicScore(correctAnswers: number, totalQuestions: numb
       score,
       level: "及格",
       color: "bg-orange-500",
-      description: "逻辑思维能力需要提升，建议加强训练",
+      description: "邏輯思維能力需要提升，建議加強訓練",
     }
   }
   return {
     score,
     level: "不及格",
     color: "bg-red-500",
-    description: "逻辑思维能力有待加强，需要系统性训练",
+    description: "邏輯思維能力有待加強，需要系統性訓練",
   }
 }
 
@@ -54,40 +54,40 @@ export function calculateCreativityScore(totalScore: number, maxScore: number): 
   if (score >= 85) {
     return {
       score,
-      level: "极具创意",
+      level: "極具創意",
       color: "bg-purple-500",
-      description: "拥有卓越的创新思维和想象力，能够产生独特的解决方案",
+      description: "擁有卓越的創新思維和想像力，能夠產生獨特的解決方案",
     }
   }
   if (score >= 75) {
     return {
       score,
-      level: "很有创意",
+      level: "很有創意",
       color: "bg-blue-500",
-      description: "具备较强的创造性思维能力，善于创新",
+      description: "具備較強的創造性思維能力，善於創新",
     }
   }
   if (score >= 65) {
     return {
       score,
-      level: "有一定创意",
+      level: "有一定創意",
       color: "bg-green-500",
-      description: "具有一定的创新潜力，可以进一步培养",
+      description: "具有一定的創新潛力，可以進一步培養",
     }
   }
   if (score >= 50) {
     return {
       score,
-      level: "创意一般",
+      level: "創意一般",
       color: "bg-yellow-500",
-      description: "创造性思维有待提升，建议多参与创新活动",
+      description: "創造性思維有待提升，建議多參與創新活動",
     }
   }
   return {
     score,
-    level: "缺乏创意",
+    level: "缺乏創意",
     color: "bg-red-500",
-    description: "需要培养创新思维能力，建议接受创意思维训练",
+    description: "需要培養創新思維能力，建議接受創意思維訓練",
   }
 }
 
@@ -105,12 +105,12 @@ export function calculateCombinedScore(
     balance: number
   }
 } {
-  // 综合分数：逻辑40% + 创意40% + 平衡性20%
+  // 綜合分數：邏輯40% + 創意40% + 平衡性20%
   const logicWeight = 0.4
   const creativityWeight = 0.4
   const balanceWeight = 0.2
 
-  // 计算平衡性分数（两项分数越接近，平衡性越高）
+  // 計算平衡性分數（兩項分數越接近，平衡性越高）
   const scoreDiff = Math.abs(logicScore - creativityScore)
   const balanceScore = Math.max(0, 100 - scoreDiff * 2)
 
@@ -125,23 +125,23 @@ export function calculateCombinedScore(
   if (overallScore >= 90) {
     level = "卓越"
     color = "bg-gradient-to-r from-purple-500 to-blue-500"
-    description = "综合能力卓越，逻辑思维与创意能力并重，是理想的复合型人才"
+    description = "綜合能力卓越，邏輯思維與創意能力並重，是理想的複合型人才"
   } else if (overallScore >= 80) {
-    level = "优秀"
+    level = "優秀"
     color = "bg-gradient-to-r from-blue-500 to-green-500"
-    description = "综合能力优秀，在逻辑思维和创意能力方面都有良好表现"
+    description = "綜合能力優秀，在邏輯思維和創意能力方面都有良好表現"
   } else if (overallScore >= 70) {
     level = "良好"
     color = "bg-gradient-to-r from-green-500 to-yellow-500"
-    description = "综合能力良好，具备一定的逻辑思维和创意能力"
+    description = "綜合能力良好，具備一定的邏輯思維和創意能力"
   } else if (overallScore >= 60) {
     level = "中等"
     color = "bg-gradient-to-r from-yellow-500 to-orange-500"
-    description = "综合能力中等，建议针对性提升薄弱环节"
+    description = "綜合能力中等，建議針對性提升薄弱環節"
   } else {
     level = "待提升"
     color = "bg-gradient-to-r from-orange-500 to-red-500"
-    description = "综合能力有待提升，建议系统性训练逻辑思维和创意能力"
+    description = "綜合能力有待提升，建議系統性訓練邏輯思維和創意能力"
   }
 
   return {
@@ -161,27 +161,27 @@ export function getRecommendations(logicScore: number, creativityScore: number):
   const recommendations: string[] = []
 
   if (logicScore < 70) {
-    recommendations.push("建议加强逻辑思维训练，多做推理题和数学题")
-    recommendations.push("学习系统性思维方法，如思维导图、流程图等")
+    recommendations.push("建議加強邏輯思維訓練，多做推理題和數學題")
+    recommendations.push("學習系統性思維方法，如思維導圖、流程圖等")
   }
 
   if (creativityScore < 70) {
-    recommendations.push("建议参与更多创意活动，如头脑风暴、设计思维工作坊")
-    recommendations.push("培养好奇心，多接触不同领域的知识和经验")
+    recommendations.push("建議參與更多創意活動，如頭腦風暴、設計思維工作坊")
+    recommendations.push("培養好奇心，多接觸不同領域的知識和經驗")
   }
 
   const scoreDiff = Math.abs(logicScore - creativityScore)
   if (scoreDiff > 20) {
     if (logicScore > creativityScore) {
-      recommendations.push("您的逻辑思维较强，建议平衡发展创意能力")
+      recommendations.push("您的邏輯思維較強，建議平衡發展創意能力")
     } else {
-      recommendations.push("您的创意能力较强，建议平衡发展逻辑思维")
+      recommendations.push("您的創意能力較強，建議平衡發展邏輯思維")
     }
   }
 
   if (logicScore >= 80 && creativityScore >= 80) {
-    recommendations.push("您具备优秀的综合能力，建议承担更多挑战性工作")
-    recommendations.push("可以考虑担任需要创新和分析并重的领导角色")
+    recommendations.push("您具備優秀的綜合能力，建議承擔更多挑戰性工作")
+    recommendations.push("可以考慮擔任需要創新和分析並重的領導角色")
   }
 
   return recommendations

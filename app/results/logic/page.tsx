@@ -33,9 +33,9 @@ export default function LogicResultsPage() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardContent className="text-center py-8">
-            <p className="text-muted-foreground mb-4">未找到测试结果</p>
+            <p className="text-muted-foreground mb-4">未找到測試結果</p>
             <Button asChild>
-              <Link href="/tests/logic">重新测试</Link>
+              <Link href="/tests/logic">重新測試</Link>
             </Button>
           </CardContent>
         </Card>
@@ -44,11 +44,11 @@ export default function LogicResultsPage() {
   }
 
   const getScoreLevel = (score: number) => {
-    if (score >= 90) return { level: "优秀", color: "bg-green-500", description: "逻辑思维能力出色" }
-    if (score >= 80) return { level: "良好", color: "bg-blue-500", description: "逻辑思维能力较强" }
-    if (score >= 70) return { level: "中等", color: "bg-yellow-500", description: "逻辑思维能力一般" }
-    if (score >= 60) return { level: "及格", color: "bg-orange-500", description: "逻辑思维能力需要提升" }
-    return { level: "不及格", color: "bg-red-500", description: "逻辑思维能力有待加强" }
+    if (score >= 90) return { level: "優秀", color: "bg-green-500", description: "邏輯思維能力出色" }
+    if (score >= 80) return { level: "良好", color: "bg-blue-500", description: "邏輯思維能力較強" }
+    if (score >= 70) return { level: "中等", color: "bg-yellow-500", description: "邏輯思維能力一般" }
+    if (score >= 60) return { level: "及格", color: "bg-orange-500", description: "邏輯思維能力需要提升" }
+    return { level: "不及格", color: "bg-red-500", description: "邏輯思維能力有待加強" }
   }
 
   const scoreLevel = getScoreLevel(results.score)
@@ -63,9 +63,9 @@ export default function LogicResultsPage() {
               <Brain className="w-6 h-6 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">逻辑思维测试结果</h1>
+              <h1 className="text-xl font-bold text-foreground">邏輯思維測試結果</h1>
               <p className="text-sm text-muted-foreground">
-                完成时间：{new Date(results.completedAt).toLocaleString("zh-CN")}
+                完成時間：{new Date(results.completedAt).toLocaleString("zh-TW")}
               </p>
             </div>
           </div>
@@ -82,7 +82,7 @@ export default function LogicResultsPage() {
               >
                 <span className="text-3xl font-bold text-white">{results.score}</span>
               </div>
-              <CardTitle className="text-3xl mb-2">测试完成！</CardTitle>
+              <CardTitle className="text-3xl mb-2">測試完成！</CardTitle>
               <div className="flex items-center justify-center gap-2 mb-4">
                 <Badge variant="secondary" className="text-lg px-4 py-1">
                   {scoreLevel.level}
@@ -94,17 +94,17 @@ export default function LogicResultsPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600 mb-1">{results.correctAnswers}</div>
-                  <div className="text-sm text-muted-foreground">答对题数</div>
+                  <div className="text-sm text-muted-foreground">答對題數</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-primary mb-1">{results.totalQuestions}</div>
-                  <div className="text-sm text-muted-foreground">总题数</div>
+                  <div className="text-sm text-muted-foreground">總題數</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-accent mb-1">
                     {Math.round((results.correctAnswers / results.totalQuestions) * 100)}%
                   </div>
-                  <div className="text-sm text-muted-foreground">正确率</div>
+                  <div className="text-sm text-muted-foreground">正確率</div>
                 </div>
               </div>
               <Progress value={results.score} className="h-3 mb-4" />
@@ -114,7 +114,7 @@ export default function LogicResultsPage() {
           {/* Detailed Results */}
           <Card>
             <CardHeader>
-              <CardTitle>详细结果</CardTitle>
+              <CardTitle>詳細結果</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
@@ -136,7 +136,7 @@ export default function LogicResultsPage() {
                         </div>
                         <div className="flex-1">
                           <h3 className="font-medium mb-2 text-balance">
-                            第{index + 1}题：{question.question}
+                            第{index + 1}題：{question.question}
                           </h3>
                           <div className="space-y-2 text-sm">
                             <div className="flex items-center gap-2">
@@ -147,7 +147,7 @@ export default function LogicResultsPage() {
                             </div>
                             {!isCorrect && (
                               <div className="flex items-center gap-2">
-                                <span className="text-muted-foreground">正确答案：</span>
+                                <span className="text-muted-foreground">正確答案：</span>
                                 <Badge variant="outline" className="border-green-500 text-green-700">
                                   {correctOption?.text}
                                 </Badge>
@@ -174,17 +174,17 @@ export default function LogicResultsPage() {
             <Button asChild size="lg">
               <Link href="/">
                 <Home className="w-4 h-4 mr-2" />
-                返回首页
+                返回首頁
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg">
               <Link href="/tests/logic">
                 <RotateCcw className="w-4 h-4 mr-2" />
-                重新测试
+                重新測試
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <Link href="/tests/creative">开始创意测试</Link>
+              <Link href="/tests/creative">開始創意測試</Link>
             </Button>
           </div>
         </div>

@@ -369,14 +369,8 @@ export default function HomePage() {
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               {/* 左側內容 */}
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
-                  <Image 
-                    src="/solution.png" 
-                    alt="HR 評估系統 Logo" 
-                    width={32} 
-                    height={32} 
-                    className="object-contain"
-                  />
+                <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                  <Users className="w-6 h-6 text-primary-foreground" />
                 </div>
                 <div>
                   <span className="text-lg font-semibold">HR 評估系統</span>
