@@ -4,6 +4,7 @@ import { createLogicQuestionsTable } from './models/logic_question'
 import { createCreativeQuestionsTable } from './models/creative_question'
 import { createTestResultsTable } from './models/test_result'
 import { createLogicTestAnswersTable } from './models/logic_test_answer'
+import { createCreativeTestAnswersTable } from './models/creative_test_answer'
 
 // 初始化資料庫
 export async function initializeDatabase(): Promise<boolean> {
@@ -31,6 +32,9 @@ export async function initializeDatabase(): Promise<boolean> {
 
     // 建立邏輯測驗答案表
     await createLogicTestAnswersTable()
+
+    // 建立創意測驗答案表
+    await createCreativeTestAnswersTable()
 
     console.log('✅ 資料庫初始化完成')
     return true

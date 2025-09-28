@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/lib/hooks/use-auth"
 
 interface CreativeQuestion {
   id: number
@@ -18,11 +19,13 @@ interface CreativeQuestion {
 
 export default function CreativeTestPage() {
   const router = useRouter()
+  const { user } = useAuth()
   const [questions, setQuestions] = useState<CreativeQuestion[]>([])
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [answers, setAnswers] = useState<Record<number, number>>({})
   const [timeRemaining, setTimeRemaining] = useState(30 * 60) // 30 minutes in seconds
   const [isLoading, setIsLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Load questions from database
   useEffect(() => {
@@ -88,31 +91,83 @@ export default function CreativeTestPage() {
     }
   }
 
-  const handleSubmit = () => {
-    // Calculate score based on creativity scoring
-    let totalScore = 0
-    questions.forEach((question, index) => {
-      const answer = answers[index] || 1
-      // For creativity, higher scores indicate more creative thinking
-      // 反向題：選擇 5 得 1 分，選擇 1 得 5 分
-      totalScore += question.is_reverse ? 6 - answer : answer
-    })
+  const handleSubmit = async () => {
+    console.log('🔍 開始提交創意測驗...')
+    console.log('用戶狀態:', user)
 
-    const maxScore = questions.length * 5
-    const score = Math.round((totalScore / maxScore) * 100)
-
-    // Store results in localStorage
-    const results = {
-      type: "creative",
-      score,
-      totalScore,
-      maxScore,
-      answers,
-      completedAt: new Date().toISOString(),
+    if (!user) {
+      console.log('❌ 用戶未登入')
+      alert('請先登入')
+      return
     }
 
-    localStorage.setItem("creativeTestResults", JSON.stringify(results))
-    router.push("/results/creative")
+    console.log('✅ 用戶已登入，用戶ID:', user.id)
+    setIsSubmitting(true)
+
+    try {
+      // Calculate score based on creativity scoring
+      let totalScore = 0
+      questions.forEach((question, index) => {
+        const answer = answers[index] || 1
+        // For creativity, higher scores indicate more creative thinking
+        // 反向題：選擇 5 得 1 分，選擇 1 得 5 分
+        totalScore += question.is_reverse ? 6 - answer : answer
+      })
+
+      const maxScore = questions.length * 5
+      const score = Math.round((totalScore / maxScore) * 100)
+
+      // Store results in localStorage (for backward compatibility)
+      const results = {
+        type: "creative",
+        score,
+        totalScore,
+        maxScore,
+        answers,
+        completedAt: new Date().toISOString(),
+      }
+
+      localStorage.setItem("creativeTestResults", JSON.stringify(results))
+      console.log('✅ 結果已儲存到 localStorage')
+
+      // Upload to database
+      console.log('🔄 開始上傳到資料庫...')
+      const uploadData = {
+        userId: user.id,
+        answers: Object.values(answers),
+        completedAt: new Date().toISOString().replace('Z', '').replace('T', ' ')
+      }
+      console.log('上傳數據:', uploadData)
+
+      const uploadResponse = await fetch('/api/test-results/creative', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(uploadData)
+      })
+
+      console.log('📡 API 響應狀態:', uploadResponse.status)
+      const uploadResult = await uploadResponse.json()
+      console.log('📡 API 響應內容:', uploadResult)
+
+      if (uploadResult.success) {
+        console.log('✅ 創意測驗結果已上傳到資料庫')
+        console.log('測試結果ID:', uploadResult.data.testResult.id)
+        console.log('答案記錄數量:', uploadResult.data.answerCount)
+      } else {
+        console.error('❌ 上傳到資料庫失敗:', uploadResult.error)
+        // 即使上傳失敗，也繼續顯示結果
+      }
+
+      router.push("/results/creative")
+
+    } catch (error) {
+      console.error('❌ 提交測驗失敗:', error)
+      alert('提交測驗失敗，請重試')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   if (isLoading) {
@@ -223,8 +278,8 @@ export default function CreativeTestPage() {
           </div>
 
           {isLastQuestion ? (
-            <Button onClick={handleSubmit} disabled={!hasAnswer} className="bg-green-600 hover:bg-green-700">
-              提交測試
+            <Button onClick={handleSubmit} disabled={!hasAnswer || isSubmitting} className="bg-green-600 hover:bg-green-700">
+              {isSubmitting ? '提交中...' : '提交測試'}
             </Button>
           ) : (
             <Button onClick={handleNext} disabled={!hasAnswer}>

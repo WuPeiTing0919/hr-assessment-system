@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress"
 import { Lightbulb, Home, RotateCcw, TrendingUp } from "lucide-react"
 import Link from "next/link"
 import { creativeQuestions } from "@/lib/questions/creative-questions"
+import { useAuth } from "@/lib/hooks/use-auth"
 
 interface CreativeTestResults {
   type: string
@@ -16,17 +17,139 @@ interface CreativeTestResults {
   maxScore: number
   answers: Record<number, number>
   completedAt: string
+  dimensionScores?: {
+    innovation: { percentage: number, rawScore: number, maxScore: number }
+    imagination: { percentage: number, rawScore: number, maxScore: number }
+    flexibility: { percentage: number, rawScore: number, maxScore: number }
+    originality: { percentage: number, rawScore: number, maxScore: number }
+  }
 }
 
 export default function CreativeResultsPage() {
+  const { user } = useAuth()
   const [results, setResults] = useState<CreativeTestResults | null>(null)
+  const [questions, setQuestions] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    const loadData = async () => {
+      if (!user) return
+
+      try {
+        // 從資料庫獲取最新的創意測驗結果
+        const response = await fetch(`/api/test-results/creative?userId=${user.id}`)
+        const data = await response.json()
+
+        if (data.success && data.data.length > 0) {
+          // 取最新的結果
+          const latestResult = data.data[0]
+          
+          // 獲取題目資料來計算各維度分數
+          const questionsResponse = await fetch('/api/creative-questions')
+          const questionsData = await questionsResponse.json()
+          
+          if (questionsData.success) {
+            setQuestions(questionsData.questions)
+            
+            // 計算各維度分數
+            const dimensionScores = await calculateDimensionScores(latestResult, questionsData.questions)
+            
+            setResults({
+              type: "creative",
+              score: latestResult.score,
+              totalScore: latestResult.correct_answers,
+              maxScore: latestResult.total_questions * 5,
+              answers: {}, // 從資料庫結果中獲取
+              completedAt: latestResult.completed_at,
+              dimensionScores: dimensionScores
+            })
+          }
+        } else {
+          // 如果沒有資料庫結果，回退到 localStorage
+          const savedResults = localStorage.getItem("creativeTestResults")
+          if (savedResults) {
+            setResults(JSON.parse(savedResults))
+          }
+        }
+      } catch (error) {
+        console.error('Error loading creative test results:', error)
+        // 回退到 localStorage
     const savedResults = localStorage.getItem("creativeTestResults")
     if (savedResults) {
       setResults(JSON.parse(savedResults))
     }
-  }, [])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadData()
+  }, [user])
+
+  // 計算各維度分數
+  const calculateDimensionScores = async (testResult: any, questions: any[]) => {
+    try {
+      // 獲取詳細答案
+      const answersResponse = await fetch(`/api/creative-test-answers?testResultId=${testResult.id}`)
+      const answersData = await answersResponse.json()
+      
+      if (!answersData.success) {
+        return {
+          innovation: { percentage: 0, rawScore: 0, maxScore: 0 },
+          imagination: { percentage: 0, rawScore: 0, maxScore: 0 },
+          flexibility: { percentage: 0, rawScore: 0, maxScore: 0 },
+          originality: { percentage: 0, rawScore: 0, maxScore: 0 }
+        }
+      }
+
+      const answers = answersData.data
+      const dimensionScores: Record<string, { total: number, count: number }> = {
+        innovation: { total: 0, count: 0 },
+        imagination: { total: 0, count: 0 },
+        flexibility: { total: 0, count: 0 },
+        originality: { total: 0, count: 0 }
+      }
+
+      // 計算各維度分數
+      answers.forEach((answer: any) => {
+        const question = questions.find(q => q.id === answer.question_id)
+        if (question && dimensionScores[question.category]) {
+          dimensionScores[question.category].total += answer.score
+          dimensionScores[question.category].count += 1
+        }
+      })
+
+      // 計算百分比分數和原始分數
+      const result = {
+        innovation: { percentage: 0, rawScore: 0, maxScore: 0 },
+        imagination: { percentage: 0, rawScore: 0, maxScore: 0 },
+        flexibility: { percentage: 0, rawScore: 0, maxScore: 0 },
+        originality: { percentage: 0, rawScore: 0, maxScore: 0 }
+      }
+      
+      Object.keys(dimensionScores).forEach(category => {
+        const { total, count } = dimensionScores[category]
+        const maxScore = count * 5
+        const percentage = count > 0 ? Math.round((total / maxScore) * 100) : 0
+        
+        result[category as keyof typeof result] = {
+          percentage: percentage,
+          rawScore: total,
+          maxScore: maxScore
+        }
+      })
+
+      return result
+    } catch (error) {
+      console.error('計算維度分數失敗:', error)
+      return {
+        innovation: { percentage: 0, rawScore: 0, maxScore: 0 },
+        imagination: { percentage: 0, rawScore: 0, maxScore: 0 },
+        flexibility: { percentage: 0, rawScore: 0, maxScore: 0 },
+        originality: { percentage: 0, rawScore: 0, maxScore: 0 }
+      }
+    }
+  }
 
   if (!results) {
     return (
@@ -78,7 +201,33 @@ export default function CreativeResultsPage() {
 
   const creativityLevel = getCreativityLevel(results.score)
 
-  // Calculate category scores
+  // Calculate category scores - prioritize database data if available
+  let categoryResults: Array<{
+    category: string
+    name: string
+    score: number
+    rawScore: number
+    maxRawScore: number
+  }> = []
+
+  if (results.dimensionScores) {
+    // Use database-calculated dimension scores
+    const dimensionNames = {
+      innovation: '創新能力',
+      imagination: '想像力',
+      flexibility: '靈活性',
+      originality: '原創性'
+    }
+    
+    categoryResults = Object.entries(results.dimensionScores).map(([key, data]) => ({
+      category: key,
+      name: dimensionNames[key as keyof typeof dimensionNames],
+      score: data.percentage,
+      rawScore: data.rawScore,
+      maxRawScore: data.maxScore
+    }))
+  } else {
+    // Fallback to localStorage calculation
   const categoryScores = {
     innovation: { total: 0, count: 0, name: "創新能力" },
     imagination: { total: 0, count: 0, name: "想像力" },
@@ -93,13 +242,14 @@ export default function CreativeResultsPage() {
     categoryScores[question.category].count += 1
   })
 
-  const categoryResults = Object.entries(categoryScores).map(([key, data]) => ({
+    categoryResults = Object.entries(categoryScores).map(([key, data]) => ({
     category: key,
     name: data.name,
     score: data.count > 0 ? Math.round((data.total / (data.count * 5)) * 100) : 0,
     rawScore: data.total,
     maxRawScore: data.count * 5,
   }))
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -338,11 +488,11 @@ export default function CreativeResultsPage() {
                   {/* Legend */}
                   <div className="flex justify-center">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                      {categoryResults.map((category) => (
+                  {categoryResults.map((category) => (
                         <div key={category.category} className="flex items-center gap-2">
                           <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
                           <span className="text-muted-foreground">{category.name}</span>
-                        </div>
+                      </div>
                       ))}
                     </div>
                   </div>

@@ -60,7 +60,7 @@ export async function findCreativeQuestionById(id: number): Promise<CreativeQues
 // 獲取所有題目
 export async function getAllCreativeQuestions(): Promise<CreativeQuestion[]> {
   const query = 'SELECT * FROM creative_questions ORDER BY created_at'
-  return await executeQuery<CreativeQuestion[]>(query)
+  return await executeQuery<CreativeQuestion>(query)
 }
 
 // 清空所有題目
