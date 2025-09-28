@@ -13,7 +13,7 @@ export default function TestsPage() {
             <Button variant="ghost" size="sm" asChild>
               <Link href="/">
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                返回首頁
+                <span className="hidden sm:inline">返回首頁</span>
               </Link>
             </Button>
             <div>

@@ -235,7 +235,7 @@ function AnalyticsContent() {
             <Button variant="ghost" size="sm" asChild>
               <Link href="/dashboard">
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                返回儀表板
+                <span className="hidden sm:inline">返回儀表板</span>
               </Link>
             </Button>
             <div>

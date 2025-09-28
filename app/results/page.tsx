@@ -149,7 +149,7 @@ function ResultsContent() {
               <Button variant="ghost" size="sm" asChild>
                 <Link href="/dashboard">
                   <ArrowLeft className="w-4 h-4 mr-2" />
-                  返回儀表板
+                  <span className="hidden sm:inline">返回儀表板</span>
                 </Link>
               </Button>
               <div>
@@ -193,7 +193,7 @@ function ResultsContent() {
             <Button variant="ghost" size="sm" asChild>
               <Link href="/dashboard">
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                返回儀表板
+                <span className="hidden sm:inline">返回儀表板</span>
               </Link>
             </Button>
             <div>
@@ -285,31 +285,34 @@ function ResultsContent() {
                   return (
                     <div
                       key={index}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                      className="p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                     >
-                      <div className="flex items-center gap-4">
-                        <div className={`w-12 h-12 ${testInfo.color} rounded-lg flex items-center justify-center`}>
-                          <Icon className="w-6 h-6 text-white" />
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-12 h-12 ${testInfo.color} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                            <Icon className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-medium text-foreground">{testInfo.name}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              完成時間：{new Date(result.completedAt).toLocaleString("zh-TW")}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="font-medium text-foreground">{testInfo.name}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            完成時間：{new Date(result.completedAt).toLocaleString("zh-TW")}
-                          </p>
-                        </div>
-                      </div>
 
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <div className="text-2xl font-bold text-foreground">{result.score}</div>
-                          <Badge className={`${scoreLevel.color} text-white`}>{scoreLevel.level}</Badge>
+                        <div className="flex items-center justify-between sm:justify-end gap-4">
+                          <div className="text-center sm:text-right">
+                            <div className="text-2xl font-bold text-foreground">{result.score}</div>
+                            <Badge className={`${scoreLevel.color} text-white`}>{scoreLevel.level}</Badge>
+                          </div>
+                          <Button asChild variant="outline" size="sm" className="flex-shrink-0">
+                            <Link href={testInfo.link}>
+                              <Eye className="w-4 h-4 mr-2" />
+                              <span className="hidden sm:inline">查看詳情</span>
+                              <span className="sm:hidden">詳情</span>
+                            </Link>
+                          </Button>
                         </div>
-                        <Button asChild variant="outline" size="sm">
-                          <Link href={testInfo.link}>
-                            <Eye className="w-4 h-4 mr-2" />
-                            查看詳情
-                          </Link>
-                        </Button>
                       </div>
                     </div>
                   )

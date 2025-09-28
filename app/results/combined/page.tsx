@@ -275,7 +275,7 @@ export default function CombinedResultsPage() {
             <Button asChild size="lg">
               <Link href="/">
                 <Home className="w-4 h-4 mr-2" />
-                返回首頁
+                <span className="hidden sm:inline">返回首頁</span>
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg">
