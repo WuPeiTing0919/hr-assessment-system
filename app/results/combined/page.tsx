@@ -243,7 +243,7 @@ export default function CombinedResultsPage() {
             <div>
               <h1 className="text-xl font-bold text-foreground">綜合能力測試結果</h1>
               <p className="text-sm text-muted-foreground">
-                完成時間：{new Date(results.completedAt).toLocaleString("zh-TW", { timeZone: "Asia/Taipei" })}
+                完成時間：{new Date(results.completedAt).toLocaleString("zh-TW")}
               </p>
             </div>
           </div>

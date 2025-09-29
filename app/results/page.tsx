@@ -264,7 +264,7 @@ function ResultsContent() {
                           <div className="min-w-0 flex-1">
                             <h3 className="font-medium text-foreground">{testInfo.name}</h3>
                             <p className="text-sm text-muted-foreground">
-                              完成時間：{new Date(result.completedAt).toLocaleString("zh-TW", { timeZone: "Asia/Taipei" })}
+                              完成時間：{new Date(result.completedAt).toLocaleString("zh-TW")}
                             </p>
                             {result.testCount && result.testCount > 1 && (
                               <p className="text-xs text-muted-foreground mt-1">

@@ -34,6 +34,12 @@ export async function POST(request: NextRequest) {
     console.log('總分:', overallScore)
     console.log('等級:', level)
 
+    // 統一使用台灣時間格式
+    // 將 UTC 時間轉換為台灣時間，然後轉換為 MySQL 格式
+    const utcDate = new Date(completedAt)
+    const taiwanTime = new Date(utcDate.getTime() + (8 * 60 * 60 * 1000)) // UTC + 8 小時
+    const mysqlCompletedAt = taiwanTime.toISOString().replace('Z', '').replace('T', ' ')
+
     // 建立綜合測試結果
     const testResult = await createCombinedTestResult({
       user_id: userId,
@@ -45,7 +51,7 @@ export async function POST(request: NextRequest) {
       logic_breakdown: logicBreakdown || null,
       creativity_breakdown: creativityBreakdown || null,
       balance_score: balanceScore || 0,
-      completed_at: completedAt
+      completed_at: mysqlCompletedAt
     })
 
     if (!testResult) {

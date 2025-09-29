@@ -69,13 +69,19 @@ export async function POST(request: NextRequest) {
       completed_at: completedAt
     })
 
+    // 統一使用台灣時間格式
+    // 將 UTC 時間轉換為台灣時間，然後轉換為 MySQL 格式
+    const utcDate = new Date(completedAt)
+    const taiwanTime = new Date(utcDate.getTime() + (8 * 60 * 60 * 1000)) // UTC + 8 小時
+    const mysqlCompletedAt = taiwanTime.toISOString().replace('Z', '').replace('T', ' ')
+
     const testResult = await createTestResult({
       user_id: userId,
       test_type: 'creative',
       score: scorePercentage,
       total_questions: questions.length,
       correct_answers: totalScore,
-      completed_at: completedAt
+      completed_at: mysqlCompletedAt
     })
 
     console.log('測試結果建立結果:', testResult)

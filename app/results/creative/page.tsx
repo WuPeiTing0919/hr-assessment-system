@@ -41,8 +41,9 @@ export default function CreativeResultsPage() {
         const data = await response.json()
 
         if (data.success && data.data.length > 0) {
-          // 取最新的結果
-          const latestResult = data.data[0]
+          // 按創建時間排序，取最新的結果
+          const sortedResults = data.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+          const latestResult = sortedResults[0]
           
           // 獲取題目資料來計算各維度分數
           const questionsResponse = await fetch('/api/creative-questions')
@@ -263,7 +264,7 @@ export default function CreativeResultsPage() {
             <div>
               <h1 className="text-xl font-bold text-foreground">創意能力測試結果</h1>
               <p className="text-sm text-muted-foreground">
-                完成時間：{new Date(results.completedAt).toLocaleString("zh-TW", { timeZone: "Asia/Taipei" })}
+                完成時間：{new Date(results.completedAt).toLocaleString("zh-TW")}
               </p>
             </div>
           </div>
