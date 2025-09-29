@@ -261,6 +261,8 @@ function AdminResultsContent() {
       const data = await response.json()
 
       if (data.success) {
+        console.log('前端收到的詳細資料:', data.data)
+        console.log('題目數量:', data.data.questions?.length || 0)
         setDetailData(data.data)
       } else {
         console.error('獲取詳細結果失敗:', data.message)
