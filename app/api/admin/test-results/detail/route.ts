@@ -111,41 +111,7 @@ export async function GET(request: NextRequest) {
         
         console.log('Debug: 總共找到題目數量:', questions.length)
 
-        // 如果 breakdown 中沒有詳細答案，嘗試從單獨的答案表獲取
-        if (questions.length === 0) {
-          console.log('從 breakdown 中沒有找到答案，嘗試從答案表獲取...')
-          const logicAnswers = await getLogicTestAnswersByTestResultId(testResultId)
-          const creativeAnswers = await getCreativeTestAnswersByTestResultId(testResultId)
-
-          // 處理邏輯題答案
-          for (const answer of logicAnswers) {
-            const question = await findLogicQuestionById(answer.question_id)
-            if (question) {
-              questions.push({
-                ...question,
-                type: 'logic',
-                userAnswer: answer.user_answer,
-                isCorrect: answer.is_correct,
-                correctAnswer: answer.correct_answer,
-                explanation: answer.explanation
-              })
-            }
-          }
-
-          // 處理創意題答案
-          for (const answer of creativeAnswers) {
-            const question = await findCreativeQuestionById(answer.question_id)
-            if (question) {
-              questions.push({
-                ...question,
-                type: 'creative',
-                userAnswer: answer.user_answer,
-                score: answer.score,
-                isReverse: answer.is_reverse
-              })
-            }
-          }
-        }
+        // 綜合測試只從 breakdown 中獲取題目，不重複從答案表獲取
       }
     } else {
       const testResult = await getTestResultById(testResultId)
@@ -160,37 +126,109 @@ export async function GET(request: NextRequest) {
         }
 
         // 獲取詳細答案
-        if (testType === "logic") {
-          answers = await getLogicTestAnswersByTestResultId(testResultId)
-          console.log('Debug: 邏輯測試答案數量:', answers.length)
-          // 獲取對應的題目
-          for (const answer of answers) {
-            const question = await findLogicQuestionById(answer.question_id)
-            if (question) {
-              questions.push({
-                ...question,
-                userAnswer: answer.user_answer,
-                isCorrect: answer.is_correct,
-                correctAnswer: answer.correct_answer,
-                explanation: answer.explanation
-              })
+        try {
+          if (testType === "logic") {
+            console.log('Debug: 查詢邏輯測試答案，testResultId:', testResultId)
+            
+            
+            // 先嘗試從 logic_test_answers 表獲取
+            const logicAnswersQuery = `
+              SELECT lta.*, lq.question, lq.option_a, lq.option_b, lq.option_c, lq.option_d, lq.option_e, 
+                     lq.correct_answer, lq.explanation
+              FROM logic_test_answers lta
+              LEFT JOIN logic_questions lq ON lta.question_id = lq.id
+              WHERE lta.test_result_id = ?
+              ORDER BY lta.created_at ASC
+            `
+            const logicAnswers = await executeQuery(logicAnswersQuery, [testResultId])
+            console.log('Debug: 邏輯測試答案數量:', logicAnswers.length)
+            
+            if (logicAnswers.length > 0) {
+              // 處理邏輯題答案
+              for (const answer of logicAnswers) {
+                if (answer.question) {
+                  questions.push({
+                    id: answer.question_id,
+                    question: answer.question,
+                    option_a: answer.option_a,
+                    option_b: answer.option_b,
+                    option_c: answer.option_c,
+                    option_d: answer.option_d,
+                    option_e: answer.option_e,
+                    correct_answer: answer.correct_answer,
+                    explanation: answer.explanation,
+                    type: 'logic',
+                    userAnswer: answer.user_answer,
+                    isCorrect: answer.is_correct,
+                    correctAnswer: answer.correct_answer
+                  })
+                }
+              }
+            } else {
+              // 如果沒有找到答案，只顯示題目不顯示假答案
+              console.log('Debug: 沒有找到邏輯答案，只顯示題目')
+              const allLogicQuestions = await executeQuery('SELECT * FROM logic_questions ORDER BY id')
+              
+              for (let i = 0; i < allLogicQuestions.length; i++) {
+                const question = allLogicQuestions[i]
+                questions.push({
+                  ...question,
+                  type: 'logic',
+                  userAnswer: null, // 不顯示假答案
+                  isCorrect: null, // 不顯示假結果
+                  correctAnswer: question.correct_answer
+                })
+              }
+            }
+          } else if (testType === "creative") {
+            console.log('Debug: 查詢創意測試答案，testResultId:', testResultId)
+            
+            // 先嘗試從 creative_test_answers 表獲取
+            const creativeAnswersQuery = `
+              SELECT cta.*, cq.statement, cq.is_reverse
+              FROM creative_test_answers cta
+              LEFT JOIN creative_questions cq ON cta.question_id = cq.id
+              WHERE cta.test_result_id = ?
+              ORDER BY cta.created_at ASC
+            `
+            const creativeAnswers = await executeQuery(creativeAnswersQuery, [testResultId])
+            console.log('Debug: 創意測試答案數量:', creativeAnswers.length)
+            
+            if (creativeAnswers.length > 0) {
+              // 處理創意題答案
+              for (const answer of creativeAnswers) {
+                if (answer.statement) {
+                  questions.push({
+                    id: answer.question_id,
+                    statement: answer.statement,
+                    is_reverse: answer.is_reverse,
+                    type: 'creative',
+                    userAnswer: answer.user_answer,
+                    score: answer.score,
+                    isReverse: answer.is_reverse
+                  })
+                }
+              }
+            } else {
+              // 如果沒有找到答案，只顯示題目不顯示假答案
+              console.log('Debug: 沒有找到創意答案，只顯示題目')
+              const allCreativeQuestions = await executeQuery('SELECT * FROM creative_questions ORDER BY id')
+              
+              for (let i = 0; i < allCreativeQuestions.length; i++) {
+                const question = allCreativeQuestions[i]
+                questions.push({
+                  ...question,
+                  type: 'creative',
+                  userAnswer: null, // 不顯示假答案
+                  score: null, // 不顯示假分數
+                  isReverse: question.is_reverse
+                })
+              }
             }
           }
-        } else if (testType === "creative") {
-          answers = await getCreativeTestAnswersByTestResultId(testResultId)
-          console.log('Debug: 創意測試答案數量:', answers.length)
-          // 獲取對應的題目
-          for (const answer of answers) {
-            const question = await findCreativeQuestionById(answer.question_id)
-            if (question) {
-              questions.push({
-                ...question,
-                userAnswer: answer.user_answer,
-                score: answer.score,
-                isReverse: answer.is_reverse
-              })
-            }
-          }
+        } catch (error) {
+          console.error('獲取詳細答案失敗:', error)
+          // 如果獲取答案失敗，至少返回基本結果
         }
         
         console.log('Debug: 單一測試類型題目數量:', questions.length)
