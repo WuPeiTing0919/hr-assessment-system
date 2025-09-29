@@ -135,7 +135,7 @@ export default function CreativeTestPage() {
       const uploadData = {
         userId: user.id,
         answers: Object.values(answers),
-        completedAt: new Date().toISOString().replace('Z', '').replace('T', ' ')
+        completedAt: new Date().toISOString()
       }
       console.log('上傳數據:', uploadData)
 

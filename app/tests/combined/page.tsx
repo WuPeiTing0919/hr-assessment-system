@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
 import { useRouter } from "next/navigation"
 import { calculateCombinedScore } from "@/lib/utils/score-calculator"
+import { useAuth } from "@/lib/hooks/use-auth"
 
 interface LogicQuestion {
   id: number
@@ -35,6 +36,7 @@ type TestPhase = "logic" | "creative" | "completed"
 
 export default function CombinedTestPage() {
   const router = useRouter()
+  const { user } = useAuth()
   const [phase, setPhase] = useState<TestPhase>("logic")
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [logicAnswers, setLogicAnswers] = useState<Record<number, string>>({})
@@ -43,6 +45,7 @@ export default function CombinedTestPage() {
   const [logicQuestions, setLogicQuestions] = useState<LogicQuestion[]>([])
   const [creativeQuestions, setCreativeQuestions] = useState<CreativeQuestion[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Load questions from database
   useEffect(() => {
@@ -148,47 +151,113 @@ export default function CombinedTestPage() {
     }
   }
 
-  const handleSubmit = () => {
-    // Calculate logic score
-    let logicCorrect = 0
-    logicQuestions.forEach((question, index) => {
-      if (logicAnswers[index] === question.correct_answer) {
-        logicCorrect++
-      }
-    })
-    const logicScore = Math.round((logicCorrect / logicQuestions.length) * 100)
+  const handleSubmit = async () => {
+    console.log('🔍 開始提交綜合測試...')
+    console.log('用戶狀態:', user)
 
-    // Calculate creativity score
-    let creativityTotal = 0
-    creativeQuestions.forEach((question, index) => {
-      const answer = creativeAnswers[index] || 1
-      creativityTotal += question.is_reverse ? 6 - answer : answer
-    })
-    const creativityMaxScore = creativeQuestions.length * 5
-    const creativityScore = Math.round((creativityTotal / creativityMaxScore) * 100)
-
-    // Calculate combined score
-    const combinedResult = calculateCombinedScore(logicScore, creativityScore)
-
-    // Store results
-    const results = {
-      type: "combined",
-      logicScore,
-      creativityScore,
-      overallScore: combinedResult.overallScore,
-      level: combinedResult.level,
-      description: combinedResult.description,
-      breakdown: combinedResult.breakdown,
-      logicAnswers,
-      creativeAnswers,
-      logicCorrect,
-      creativityTotal,
-      creativityMaxScore,
-      completedAt: new Date().toISOString(),
+    if (!user) {
+      console.log('❌ 用戶未登入')
+      alert('請先登入')
+      return
     }
 
-    localStorage.setItem("combinedTestResults", JSON.stringify(results))
-    router.push("/results/combined")
+    console.log('✅ 用戶已登入，用戶ID:', user.id)
+    setIsSubmitting(true)
+
+    try {
+      // Calculate logic score
+      let logicCorrect = 0
+      logicQuestions.forEach((question, index) => {
+        if (logicAnswers[index] === question.correct_answer) {
+          logicCorrect++
+        }
+      })
+      const logicScore = Math.round((logicCorrect / logicQuestions.length) * 100)
+
+      // Calculate creativity score
+      let creativityTotal = 0
+      creativeQuestions.forEach((question, index) => {
+        const answer = creativeAnswers[index] || 1
+        creativityTotal += question.is_reverse ? 6 - answer : answer
+      })
+      const creativityMaxScore = creativeQuestions.length * 5
+      const creativityScore = Math.round((creativityTotal / creativityMaxScore) * 100)
+
+      // Calculate combined score
+      const combinedResult = calculateCombinedScore(logicScore, creativityScore)
+
+      // Store results in localStorage (for backward compatibility)
+      const results = {
+        type: "combined",
+        logicScore,
+        creativityScore,
+        overallScore: combinedResult.overallScore,
+        level: combinedResult.level,
+        description: combinedResult.description,
+        breakdown: combinedResult.breakdown,
+        logicAnswers,
+        creativeAnswers,
+        logicCorrect,
+        creativityTotal,
+        creativityMaxScore,
+        completedAt: new Date().toISOString(),
+      }
+
+      localStorage.setItem("combinedTestResults", JSON.stringify(results))
+      console.log('✅ 結果已儲存到 localStorage')
+
+      // Upload to database
+      console.log('🔄 開始上傳到資料庫...')
+      const uploadData = {
+        userId: user.id,
+        logicScore,
+        creativityScore,
+        overallScore: combinedResult.overallScore,
+        level: combinedResult.level,
+        description: combinedResult.description,
+        logicBreakdown: {
+          correct: logicCorrect,
+          total: logicQuestions.length,
+          answers: logicAnswers
+        },
+        creativityBreakdown: {
+          total: creativityTotal,
+          maxScore: creativityMaxScore,
+          answers: creativeAnswers
+        },
+        balanceScore: combinedResult.breakdown.balance,
+        completedAt: new Date().toISOString()
+      }
+      console.log('上傳數據:', uploadData)
+
+      const uploadResponse = await fetch('/api/test-results/combined', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(uploadData)
+      })
+
+      console.log('📡 API 響應狀態:', uploadResponse.status)
+      const uploadResult = await uploadResponse.json()
+      console.log('📡 API 響應內容:', uploadResult)
+
+      if (uploadResult.success) {
+        console.log('✅ 綜合測試結果已上傳到資料庫')
+        console.log('測試結果ID:', uploadResult.data.testResult.id)
+      } else {
+        console.error('❌ 上傳到資料庫失敗:', uploadResult.error)
+        // 即使上傳失敗，也繼續顯示結果
+      }
+
+      router.push("/results/combined")
+
+    } catch (error) {
+      console.error('❌ 提交測驗失敗:', error)
+      alert('提交測驗失敗，請重試')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const currentQuestions = getCurrentQuestions()
@@ -389,8 +458,8 @@ export default function CombinedTestPage() {
           </div>
 
           {isLastQuestion ? (
-            <Button onClick={handleSubmit} disabled={!hasAnswer} className="bg-green-600 hover:bg-green-700">
-              提交測試
+            <Button onClick={handleSubmit} disabled={!hasAnswer || isSubmitting} className="bg-green-600 hover:bg-green-700">
+              {isSubmitting ? '提交中...' : '提交測試'}
             </Button>
           ) : (
             <Button onClick={handleNext} disabled={!hasAnswer}>

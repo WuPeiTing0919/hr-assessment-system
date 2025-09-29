@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress"
 import { Brain, Lightbulb, BarChart3, Home, RotateCcw, TrendingUp, Target, Award } from "lucide-react"
 import Link from "next/link"
 import { getRecommendations } from "@/lib/utils/score-calculator"
+import { useAuth } from "@/lib/hooks/use-auth"
 
 interface LogicQuestion {
   id: number
@@ -51,6 +52,7 @@ interface CombinedTestResults {
 }
 
 export default function CombinedResultsPage() {
+  const { user } = useAuth()
   const [results, setResults] = useState<CombinedTestResults | null>(null)
   const [logicQuestions, setLogicQuestions] = useState<LogicQuestion[]>([])
   const [creativeQuestions, setCreativeQuestions] = useState<CreativeQuestion[]>([])
@@ -58,11 +60,43 @@ export default function CombinedResultsPage() {
 
   useEffect(() => {
     const loadData = async () => {
+      if (!user) return
+
       try {
-        // Load test results
-        const savedResults = localStorage.getItem("combinedTestResults")
-        if (savedResults) {
-          setResults(JSON.parse(savedResults))
+        // 從資料庫獲取最新的綜合測試結果
+        const response = await fetch(`/api/test-results/combined?userId=${user.id}`)
+        const data = await response.json()
+
+        if (data.success && data.data.length > 0) {
+          // 取最新的結果
+          const latestResult = data.data[0]
+          
+          // 轉換為前端需要的格式
+          setResults({
+            type: "combined",
+            logicScore: latestResult.logic_score,
+            creativityScore: latestResult.creativity_score,
+            overallScore: latestResult.overall_score,
+            level: latestResult.level,
+            description: latestResult.description || "",
+            breakdown: {
+              logic: latestResult.logic_score,
+              creativity: latestResult.creativity_score,
+              balance: latestResult.balance_score
+            },
+            logicAnswers: latestResult.logic_breakdown?.answers || {},
+            creativeAnswers: latestResult.creativity_breakdown?.answers || {},
+            logicCorrect: latestResult.logic_breakdown?.correct || 0,
+            creativityTotal: latestResult.creativity_breakdown?.total || 0,
+            creativityMaxScore: latestResult.creativity_breakdown?.maxScore || 0,
+            completedAt: latestResult.completed_at
+          })
+        } else {
+          // 如果沒有資料庫結果，回退到 localStorage
+          const savedResults = localStorage.getItem("combinedTestResults")
+          if (savedResults) {
+            setResults(JSON.parse(savedResults))
+          }
         }
 
         // Load questions from database
@@ -80,13 +114,18 @@ export default function CombinedResultsPage() {
         }
       } catch (error) {
         console.error('Error loading data:', error)
+        // 回退到 localStorage
+        const savedResults = localStorage.getItem("combinedTestResults")
+        if (savedResults) {
+          setResults(JSON.parse(savedResults))
+        }
       } finally {
         setIsLoading(false)
       }
     }
 
     loadData()
-  }, [])
+  }, [user])
 
   if (isLoading) {
     return (

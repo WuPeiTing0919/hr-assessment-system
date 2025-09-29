@@ -119,7 +119,7 @@ export default function LogicTestPage() {
       })
 
       const score = Math.round((correctAnswers / questions.length) * 100)
-      const completedAt = new Date().toISOString().replace('Z', '').replace('T', ' ')
+      const completedAt = new Date().toISOString()
 
       console.log('📊 測驗結果計算:')
       console.log('答對題數:', correctAnswers)
