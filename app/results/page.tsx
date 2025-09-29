@@ -195,46 +195,46 @@ function ResultsContent() {
           )}
 
           {/* Statistics Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
             <Card>
-              <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Users className="w-6 h-6 text-primary" />
+              <CardContent className="p-3 md:p-6 text-center">
+                <div className="w-8 h-8 md:w-12 md:h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2 md:mb-3">
+                  <Users className="w-4 h-4 md:w-6 md:h-6 text-primary" />
                 </div>
-                <div className="text-2xl font-bold text-foreground mb-1">{stats.totalTests}</div>
-                <div className="text-sm text-muted-foreground">完成測試</div>
+                <div className="text-lg md:text-2xl font-bold text-foreground mb-1">{stats.totalTests}</div>
+                <div className="text-xs md:text-sm text-muted-foreground">完成測試</div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <TrendingUp className="w-6 h-6 text-blue-500" />
+              <CardContent className="p-3 md:p-6 text-center">
+                <div className="w-8 h-8 md:w-12 md:h-12 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-2 md:mb-3">
+                  <TrendingUp className="w-4 h-4 md:w-6 md:h-6 text-blue-500" />
                 </div>
-                <div className="text-2xl font-bold text-foreground mb-1">{stats.averageScore}</div>
-                <div className="text-sm text-muted-foreground">平均分數</div>
+                <div className="text-lg md:text-2xl font-bold text-foreground mb-1">{stats.averageScore}</div>
+                <div className="text-xs md:text-sm text-muted-foreground">平均分數</div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <BarChart3 className="w-6 h-6 text-green-500" />
+              <CardContent className="p-3 md:p-6 text-center">
+                <div className="w-8 h-8 md:w-12 md:h-12 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-2 md:mb-3">
+                  <BarChart3 className="w-4 h-4 md:w-6 md:h-6 text-green-500" />
                 </div>
-                <div className="text-2xl font-bold text-foreground mb-1">{stats.bestScore}</div>
-                <div className="text-sm text-muted-foreground">最高分數</div>
+                <div className="text-lg md:text-2xl font-bold text-foreground mb-1">{stats.bestScore}</div>
+                <div className="text-xs md:text-sm text-muted-foreground">最高分數</div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Calendar className="w-6 h-6 text-accent" />
+              <CardContent className="p-3 md:p-6 text-center">
+                <div className="w-8 h-8 md:w-12 md:h-12 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-2 md:mb-3">
+                  <Calendar className="w-4 h-4 md:w-6 md:h-6 text-accent" />
                 </div>
-                <div className="text-sm font-bold text-foreground mb-1">
+                <div className="text-xs md:text-sm font-bold text-foreground mb-1">
                   {stats.lastTestDate ? new Date(stats.lastTestDate).toLocaleDateString("zh-TW", { timeZone: "Asia/Taipei" }) : "無"}
                 </div>
-                <div className="text-sm text-muted-foreground">最近測試</div>
+                <div className="text-xs md:text-sm text-muted-foreground">最近測試</div>
               </CardContent>
             </Card>
           </div>
