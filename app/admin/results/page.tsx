@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import { Brain, Lightbulb, BarChart3, ArrowLeft, Search, Download, Filter, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
+import { Brain, Lightbulb, BarChart3, ArrowLeft, Search, Download, Filter, ChevronLeft, ChevronRight, Loader2, Eye } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/lib/hooks/use-auth"
 
@@ -81,6 +82,10 @@ function AdminResultsContent() {
   const [testTypeFilter, setTestTypeFilter] = useState("all")
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [selectedResult, setSelectedResult] = useState<TestResult | null>(null)
+  const [showDetailModal, setShowDetailModal] = useState(false)
+  const [detailData, setDetailData] = useState<any>(null)
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false)
 
   useEffect(() => {
     loadData()
@@ -232,9 +237,9 @@ function AdminResultsContent() {
         const link = document.createElement('a')
         link.href = url
         link.download = data.filename
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
         window.URL.revokeObjectURL(url)
       } else {
         console.error('匯出失敗:', data.message)
@@ -243,6 +248,29 @@ function AdminResultsContent() {
     } catch (error) {
       console.error('匯出錯誤:', error)
       alert('匯出時發生錯誤，請稍後再試')
+    }
+  }
+
+  const handleViewDetail = async (result: TestResult) => {
+    setSelectedResult(result)
+    setShowDetailModal(true)
+    setIsLoadingDetail(true)
+
+    try {
+      const response = await fetch(`/api/admin/test-results/detail?testResultId=${result.id}&testType=${result.type}`)
+      const data = await response.json()
+
+      if (data.success) {
+        setDetailData(data.data)
+      } else {
+        console.error('獲取詳細結果失敗:', data.message)
+        alert('獲取詳細結果失敗，請稍後再試')
+      }
+    } catch (error) {
+      console.error('獲取詳細結果錯誤:', error)
+      alert('獲取詳細結果時發生錯誤，請稍後再試')
+    } finally {
+      setIsLoadingDetail(false)
     }
   }
 
@@ -401,16 +429,17 @@ function AdminResultsContent() {
               ) : (
                 <>
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>用戶</TableHead>
-                    <TableHead>部門</TableHead>
-                    <TableHead>測試類型</TableHead>
-                    <TableHead>分數</TableHead>
-                    <TableHead>等級</TableHead>
-                    <TableHead>完成時間</TableHead>
-                  </TableRow>
-                </TableHeader>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>用戶</TableHead>
+                        <TableHead>部門</TableHead>
+                        <TableHead>測試類型</TableHead>
+                        <TableHead>分數</TableHead>
+                        <TableHead>等級</TableHead>
+                        <TableHead>完成時間</TableHead>
+                        <TableHead>操作</TableHead>
+                      </TableRow>
+                    </TableHeader>
                 <TableBody>
                       {results.map((result) => {
                         const testTypeInfo = getTestTypeInfo(result.type)
@@ -444,10 +473,21 @@ function AdminResultsContent() {
                                 {scoreLevel.level}
                               </Badge>
                         </TableCell>
-                        <TableCell>
+                            <TableCell>
                               <div className="text-sm">{formatDate(result.completedAt)}</div>
-                        </TableCell>
-                      </TableRow>
+                            </TableCell>
+                            <TableCell>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleViewDetail(result)}
+                                className="flex items-center gap-2"
+                              >
+                                <Eye className="w-4 h-4" />
+                                查看詳情
+                              </Button>
+                            </TableCell>
+                          </TableRow>
                     )
                   })}
                 </TableBody>
@@ -599,6 +639,273 @@ function AdminResultsContent() {
           </Card>
         </div>
       </div>
+
+      {/* 詳細結果模態框 */}
+      <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>測驗詳細結果</DialogTitle>
+            <DialogDescription>
+              {selectedResult && `${selectedResult.userName} - ${getTestTypeInfo(selectedResult.type).name}`}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {isLoadingDetail ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin mr-2" />
+              <span>載入詳細結果中...</span>
+            </div>
+          ) : detailData ? (
+            <div className="space-y-6">
+              {/* 基本資訊 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>基本資訊</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">用戶姓名</label>
+                      <p className="text-sm">{detailData.user.name}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">用戶郵箱</label>
+                      <p className="text-sm">{detailData.user.email}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">部門</label>
+                      <p className="text-sm">{detailData.user.department}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">完成時間</label>
+                      <p className="text-sm">{formatDate(detailData.result.completedAt)}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">總分</label>
+                      <p className="text-sm font-bold text-lg">{detailData.result.score}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">等級</label>
+                      <Badge className={`${getScoreLevel(detailData.result.score).color} text-white`}>
+                        {getScoreLevel(detailData.result.score).level}
+                      </Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 題目詳情 */}
+              {detailData.questions && detailData.questions.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>答題詳情</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      {/* 邏輯思維題目 */}
+                      {detailData.questions.filter((q: any) => q.type === 'logic').length > 0 && (
+                        <div>
+                          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <Brain className="w-5 h-5 text-blue-600" />
+                            邏輯思維題目
+                          </h3>
+                          <div className="space-y-4">
+                            {detailData.questions
+                              .filter((q: any) => q.type === 'logic')
+                              .map((question: any, index: number) => (
+                              <div key={index} className="border rounded-lg p-4 bg-blue-50/30">
+                                <div className="flex items-start justify-between mb-3">
+                                  <h4 className="font-medium">第 {index + 1} 題</h4>
+                                  <Badge variant={question.isCorrect ? "default" : "destructive"}>
+                                    {question.isCorrect ? "正確" : "錯誤"}
+                                  </Badge>
+                                </div>
+                                
+                                <div className="space-y-3">
+                                  <div>
+                                    <label className="text-sm font-medium text-muted-foreground">題目內容</label>
+                                    <p className="text-sm mt-1">{question.question}</p>
+                                  </div>
+
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <label className="text-sm font-medium text-muted-foreground">選項</label>
+                                      <div className="space-y-1 mt-1">
+                                        {question.option_a && <p className="text-sm">A. {question.option_a}</p>}
+                                        {question.option_b && <p className="text-sm">B. {question.option_b}</p>}
+                                        {question.option_c && <p className="text-sm">C. {question.option_c}</p>}
+                                        {question.option_d && <p className="text-sm">D. {question.option_d}</p>}
+                                        {question.option_e && <p className="text-sm">E. {question.option_e}</p>}
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <label className="text-sm font-medium text-muted-foreground">答案</label>
+                                      <div className="space-y-1 mt-1">
+                                        <p className="text-sm">用戶答案: <span className="font-bold">{question.userAnswer}</span></p>
+                                        <p className="text-sm">正確答案: <span className="font-bold text-green-600">{question.correctAnswer}</span></p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  {question.explanation && (
+                                    <div>
+                                      <label className="text-sm font-medium text-muted-foreground">解釋</label>
+                                      <p className="text-sm mt-1">{question.explanation}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 創意能力題目 */}
+                      {detailData.questions.filter((q: any) => q.type === 'creative').length > 0 && (
+                        <div>
+                          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <Lightbulb className="w-5 h-5 text-green-600" />
+                            創意能力題目
+                          </h3>
+                          <div className="space-y-4">
+                            {detailData.questions
+                              .filter((q: any) => q.type === 'creative')
+                              .map((question: any, index: number) => (
+                              <div key={index} className="border rounded-lg p-4 bg-green-50/30">
+                                <div className="flex items-start justify-between mb-3">
+                                  <h4 className="font-medium">第 {index + 1} 題</h4>
+                                  <Badge variant="outline" className="text-green-600 border-green-600">
+                                    {question.score} 分
+                                  </Badge>
+                                </div>
+                                
+                                <div className="space-y-3">
+                                  <div>
+                                    <label className="text-sm font-medium text-muted-foreground">題目內容</label>
+                                    <p className="text-sm mt-1">{question.statement}</p>
+                                  </div>
+
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <label className="text-sm font-medium text-muted-foreground">用戶答案</label>
+                                      <p className="text-sm mt-1">{question.userAnswer}</p>
+                                    </div>
+                                    <div>
+                                      <label className="text-sm font-medium text-muted-foreground">得分</label>
+                                      <p className="text-sm mt-1 font-bold">{question.score} 分</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 單一測試類型的題目（邏輯或創意） */}
+                      {detailData.result.type !== 'combined' && detailData.questions.map((question: any, index: number) => (
+                        <div key={index} className="border rounded-lg p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <h4 className="font-medium">第 {index + 1} 題</h4>
+                            {question.isCorrect !== undefined && (
+                              <Badge variant={question.isCorrect ? "default" : "destructive"}>
+                                {question.isCorrect ? "正確" : "錯誤"}
+                              </Badge>
+                            )}
+                            {question.score !== undefined && (
+                              <Badge variant="outline" className="text-green-600 border-green-600">
+                                {question.score} 分
+                              </Badge>
+                            )}
+                          </div>
+                          
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-sm font-medium text-muted-foreground">題目內容</label>
+                              <p className="text-sm mt-1">{question.question || question.statement}</p>
+                            </div>
+
+                            {question.type === 'logic' && (
+                              <>
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <label className="text-sm font-medium text-muted-foreground">選項</label>
+                                    <div className="space-y-1 mt-1">
+                                      {question.option_a && <p className="text-sm">A. {question.option_a}</p>}
+                                      {question.option_b && <p className="text-sm">B. {question.option_b}</p>}
+                                      {question.option_c && <p className="text-sm">C. {question.option_c}</p>}
+                                      {question.option_d && <p className="text-sm">D. {question.option_d}</p>}
+                                      {question.option_e && <p className="text-sm">E. {question.option_e}</p>}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-medium text-muted-foreground">答案</label>
+                                    <div className="space-y-1 mt-1">
+                                      <p className="text-sm">用戶答案: <span className="font-bold">{question.userAnswer}</span></p>
+                                      <p className="text-sm">正確答案: <span className="font-bold text-green-600">{question.correctAnswer}</span></p>
+                                    </div>
+                                  </div>
+                                </div>
+                                {question.explanation && (
+                                  <div>
+                                    <label className="text-sm font-medium text-muted-foreground">解釋</label>
+                                    <p className="text-sm mt-1">{question.explanation}</p>
+                                  </div>
+                                )}
+                              </>
+                            )}
+
+                            {question.type === 'creative' && (
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <label className="text-sm font-medium text-muted-foreground">用戶答案</label>
+                                  <p className="text-sm mt-1">{question.userAnswer}</p>
+                                </div>
+                                <div>
+                                  <label className="text-sm font-medium text-muted-foreground">得分</label>
+                                  <p className="text-sm mt-1 font-bold">{question.score} 分</p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* 綜合測試詳細分析 */}
+              {detailData.result.type === 'combined' && detailData.result.details && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>綜合能力分析</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="text-center p-4 bg-blue-50 rounded-lg">
+                        <h4 className="font-medium text-blue-800">邏輯思維</h4>
+                        <p className="text-2xl font-bold text-blue-600">{detailData.result.details.logicScore}</p>
+                      </div>
+                      <div className="text-center p-4 bg-green-50 rounded-lg">
+                        <h4 className="font-medium text-green-800">創意能力</h4>
+                        <p className="text-2xl font-bold text-green-600">{detailData.result.details.creativeScore}</p>
+                      </div>
+                      <div className="text-center p-4 bg-purple-50 rounded-lg">
+                        <h4 className="font-medium text-purple-800">能力平衡</h4>
+                        <p className="text-2xl font-bold text-purple-600">{detailData.result.details.abilityBalance}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              無法載入詳細結果
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
