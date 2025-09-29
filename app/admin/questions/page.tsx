@@ -28,7 +28,7 @@ import {
   ChevronRight,
 } from "lucide-react"
 import Link from "next/link"
-import { parseExcelFile, type ImportResult } from "@/lib/utils/excel-parser"
+import { parseExcelFile, type ImportResult, exportLogicQuestionsToExcel, exportCreativeQuestionsToExcel } from "@/lib/utils/excel-parser"
 
 // 定義題目類型
 interface LogicQuestion {
@@ -73,6 +73,7 @@ function QuestionsManagementContent() {
   
   // 分頁狀態
   const [currentPage, setCurrentPage] = useState(1)
+  const [currentLogicPage, setCurrentLogicPage] = useState(1)
   const [itemsPerPage] = useState(10)
 
   // 分頁計算
@@ -80,6 +81,12 @@ function QuestionsManagementContent() {
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
   const currentCreativeQuestions = creativeQuestions.slice(startIndex, endIndex)
+
+  // 邏輯題目分頁計算
+  const totalLogicPages = Math.ceil(logicQuestions.length / itemsPerPage)
+  const logicStartIndex = (currentLogicPage - 1) * itemsPerPage
+  const logicEndIndex = logicStartIndex + itemsPerPage
+  const currentLogicQuestions = logicQuestions.slice(logicStartIndex, logicEndIndex)
 
   // 分頁處理函數
   const handlePageChange = (page: number) => {
@@ -95,6 +102,23 @@ function QuestionsManagementContent() {
   const handleNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1)
+    }
+  }
+
+  // 邏輯題目分頁處理函數
+  const handleLogicPageChange = (page: number) => {
+    setCurrentLogicPage(page)
+  }
+
+  const handleLogicPreviousPage = () => {
+    if (currentLogicPage > 1) {
+      setCurrentLogicPage(currentLogicPage - 1)
+    }
+  }
+
+  const handleLogicNextPage = () => {
+    if (currentLogicPage < totalLogicPages) {
+      setCurrentLogicPage(currentLogicPage + 1)
     }
   }
 
@@ -168,7 +192,16 @@ function QuestionsManagementContent() {
     setIsImporting(true)
 
     try {
-      const result = await parseExcelFile(selectedFile, importType)
+      const formData = new FormData()
+      formData.append("file", selectedFile)
+      formData.append("type", importType)
+
+      const response = await fetch("/api/questions/import", {
+        method: "POST",
+        body: formData,
+      })
+
+      const result = await response.json()
       setImportResult(result)
 
       if (result.success) {
@@ -176,6 +209,34 @@ function QuestionsManagementContent() {
         // 重置檔案輸入
         const fileInput = document.getElementById("file-input") as HTMLInputElement
         if (fileInput) fileInput.value = ""
+        
+        // 重新載入題目資料
+        const fetchQuestions = async () => {
+          try {
+            const [logicResponse, creativeResponse] = await Promise.all([
+              fetch('/api/questions/logic'),
+              fetch('/api/questions/creative')
+            ])
+
+            if (logicResponse.ok) {
+              const logicData = await logicResponse.json()
+              if (logicData.success) {
+                setLogicQuestions(logicData.data)
+              }
+            }
+
+            if (creativeResponse.ok) {
+              const creativeData = await creativeResponse.json()
+              if (creativeData.success) {
+                setCreativeQuestions(creativeData.data)
+              }
+            }
+          } catch (err) {
+            console.error('重新載入題目失敗:', err)
+          }
+        }
+
+        fetchQuestions()
       }
     } catch (error) {
       setImportResult({
@@ -188,46 +249,47 @@ function QuestionsManagementContent() {
     }
   }
 
-  const downloadTemplate = (type: "logic" | "creative") => {
-    let csvContent = ""
+  const downloadTemplate = async (type: "logic" | "creative") => {
+    try {
+      const response = await fetch(`/api/questions/export?type=${type}`)
+      
+      if (!response.ok) {
+        throw new Error('下載失敗')
+      }
 
-    if (type === "logic") {
-      csvContent = [
-        ["題目ID", "題目內容", "選項A", "選項B", "選項C", "選項D", "正確答案", "解釋"],
-        [
-          "1",
-          "範例題目：如果所有A都是B，所有B都是C，那麼？",
-          "所有A都是C",
-          "所有C都是A",
-          "有些A不是C",
-          "無法確定",
-          "A",
-          "根據邏輯推理...",
-        ],
-        ["2", "在序列 2, 4, 8, 16, ? 中，下一個數字是？", "24", "32", "30", "28", "B", "每個數字都是前一個數字的2倍"],
-      ]
-        .map((row) => row.join(","))
-        .join("\n")
-    } else {
-      csvContent = [
-        ["題目ID", "陳述內容", "類別", "是否反向計分"],
-        ["1", "我經常能想出創新的解決方案", "innovation", "否"],
-        ["2", "我更喜歡按照既定規則工作", "flexibility", "是"],
-        ["3", "我喜歡嘗試新的做事方法", "innovation", "否"],
-      ]
-        .map((row) => row.join(","))
-        .join("\n")
+      const result = await response.json()
+      
+      if (!result.success) {
+        throw new Error(result.message || '下載失敗')
+      }
+
+      // 解碼 Base64 資料，保留 UTF-8 BOM
+      const binaryString = atob(result.data)
+      const bytes = new Uint8Array(binaryString.length)
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i)
+      }
+      
+      // 創建 Blob，保留原始字節資料
+      const blob = new Blob([bytes], { 
+        type: 'text/csv;charset=utf-8'
+      })
+      
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = result.filename
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error("下載範本失敗:", error)
+      setImportResult({
+        success: false,
+        message: "下載範本失敗，請稍後再試",
+      })
     }
-
-    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" })
-    const link = document.createElement("a")
-    const url = URL.createObjectURL(blob)
-    link.setAttribute("href", url)
-    link.setAttribute("download", `${type === "logic" ? "邏輯思維" : "創意能力"}題目範本.csv`)
-    link.style.visibility = "hidden"
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
   }
 
   return (
@@ -398,7 +460,7 @@ function QuestionsManagementContent() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {logicQuestions.map((question) => (
+                        {currentLogicQuestions.map((question) => (
                           <TableRow key={question.id}>
                             <TableCell className="font-medium">{question.id}</TableCell>
                             <TableCell className="max-w-md truncate">{question.question}</TableCell>
@@ -412,6 +474,147 @@ function QuestionsManagementContent() {
                         ))}
                       </TableBody>
                     </Table>
+                  )}
+
+                  {/* 邏輯題目分頁控制 */}
+                  {!isLoading && !error && logicQuestions.length > itemsPerPage && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4">
+                      <div className="text-sm text-muted-foreground text-center sm:text-left">
+                        顯示第 {logicStartIndex + 1} - {Math.min(logicEndIndex, logicQuestions.length)} 筆，共 {logicQuestions.length} 筆
+                      </div>
+                      
+                      {/* Desktop Pagination */}
+                      <div className="hidden sm:flex items-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleLogicPreviousPage}
+                          disabled={currentLogicPage === 1}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                          上一頁
+                        </Button>
+                        
+                        <div className="flex items-center space-x-1">
+                          {Array.from({ length: totalLogicPages }, (_, i) => i + 1).map((page) => (
+                            <Button
+                              key={page}
+                              variant={currentLogicPage === page ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => handleLogicPageChange(page)}
+                              className="w-8 h-8 p-0"
+                            >
+                              {page}
+                            </Button>
+                          ))}
+                        </div>
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleLogicNextPage}
+                          disabled={currentLogicPage === totalLogicPages}
+                        >
+                          下一頁
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+
+                      {/* Mobile Pagination */}
+                      <div className="flex sm:hidden items-center space-x-2 w-full justify-center">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleLogicPreviousPage}
+                          disabled={currentLogicPage === 1}
+                          className="flex-1 max-w-[80px]"
+                        >
+                          <ChevronLeft className="h-4 w-4 mr-1" />
+                          上一頁
+                        </Button>
+                        
+                        <div className="flex items-center space-x-1 px-2">
+                          {(() => {
+                            const maxVisiblePages = 3
+                            const startPage = Math.max(1, currentLogicPage - 1)
+                            const endPage = Math.min(totalLogicPages, startPage + maxVisiblePages - 1)
+                            const pages = []
+                            
+                            // 如果不在第一頁，顯示第一頁和省略號
+                            if (startPage > 1) {
+                              pages.push(
+                                <Button
+                                  key={1}
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleLogicPageChange(1)}
+                                  className="w-8 h-8 p-0"
+                                >
+                                  1
+                                </Button>
+                              )
+                              if (startPage > 2) {
+                                pages.push(
+                                  <span key="ellipsis1" className="text-muted-foreground px-1">
+                                    ...
+                                  </span>
+                                )
+                              }
+                            }
+                            
+                            // 顯示當前頁附近的頁碼
+                            for (let i = startPage; i <= endPage; i++) {
+                              pages.push(
+                                <Button
+                                  key={i}
+                                  variant={currentLogicPage === i ? "default" : "outline"}
+                                  size="sm"
+                                  onClick={() => handleLogicPageChange(i)}
+                                  className="w-8 h-8 p-0"
+                                >
+                                  {i}
+                                </Button>
+                              )
+                            }
+                            
+                            // 如果不在最後一頁，顯示省略號和最後一頁
+                            if (endPage < totalLogicPages) {
+                              if (endPage < totalLogicPages - 1) {
+                                pages.push(
+                                  <span key="ellipsis2" className="text-muted-foreground px-1">
+                                    ...
+                                  </span>
+                                )
+                              }
+                              pages.push(
+                                <Button
+                                  key={totalLogicPages}
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleLogicPageChange(totalLogicPages)}
+                                  className="w-8 h-8 p-0"
+                                >
+                                  {totalLogicPages}
+                                </Button>
+                              )
+                            }
+                            
+                            return pages
+                          })()}
+                        </div>
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleLogicNextPage}
+                          disabled={currentLogicPage === totalLogicPages}
+                          className="flex-1 max-w-[80px]"
+                        >
+                          下一頁
+                          <ChevronRight className="h-4 w-4 ml-1" />
+                        </Button>
+                      </div>
+                    </div>
                   )}
                 </TabsContent>
 
