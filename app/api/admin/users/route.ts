@@ -3,19 +3,46 @@ import { getAllUsers, createUser, updateUser, deleteUser } from '@/lib/database/
 import { hashPassword } from '@/lib/utils/password'
 
 // 獲取所有用戶
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const users = await getAllUsers()
+    const { searchParams } = new URL(request.url)
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '10')
+    
+    // 計算偏移量
+    const offset = (page - 1) * limit
+    
+    // 獲取總用戶數
+    const totalUsers = await getAllUsers()
+    const totalCount = totalUsers.length
+    
+    // 計算總頁數
+    const totalPages = Math.ceil(totalCount / limit)
+    
+    // 獲取分頁數據
+    const paginatedUsers = totalUsers.slice(offset, offset + limit)
+    
+    // 計算統計數據
+    const adminCount = totalUsers.filter(user => user.role === 'admin').length
+    const userCount = totalUsers.filter(user => user.role === 'user').length
     
     // 移除密碼欄位
-    const usersWithoutPassword = users.map(user => {
+    const usersWithoutPassword = paginatedUsers.map(user => {
       const { password, ...userWithoutPassword } = user
       return userWithoutPassword
     })
 
     return NextResponse.json({
       success: true,
-      data: usersWithoutPassword
+      data: {
+        users: usersWithoutPassword,
+        totalUsers: totalCount,
+        totalPages: totalPages,
+        currentPage: page,
+        usersPerPage: limit,
+        adminCount: adminCount,
+        userCount: userCount
+      }
     })
 
   } catch (error) {

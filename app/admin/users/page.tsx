@@ -18,7 +18,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Plus, Edit, Trash2, ArrowLeft, Eye, EyeOff } from "lucide-react"
+import { Plus, Edit, Trash2, ArrowLeft, Eye, EyeOff, ChevronLeft, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import { useAuth, type User } from "@/lib/hooks/use-auth"
 
@@ -45,6 +45,14 @@ function UsersManagementContent() {
     role: "user" as "user" | "admin",
   })
   const [error, setError] = useState("")
+  
+  // 分頁相關狀態
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalUsers, setTotalUsers] = useState(0)
+  const [adminCount, setAdminCount] = useState(0)
+  const [userCount, setUserCount] = useState(0)
+  const usersPerPage = 5
 
   const departments = ["人力資源部", "資訊技術部", "財務部", "行銷部", "業務部", "研發部", "客服部", "其他"]
 
@@ -52,13 +60,20 @@ function UsersManagementContent() {
     loadUsers()
   }, [])
 
-  const loadUsers = async () => {
+  const loadUsers = async (page: number = 1) => {
     try {
-      const response = await fetch('/api/admin/users')
+      const response = await fetch(`/api/admin/users?page=${page}&limit=${usersPerPage}`)
       const data = await response.json()
       
       if (data.success) {
-        setUsers(data.data)
+        setUsers(data.data.users)
+        setTotalPages(data.data.totalPages)
+        setTotalUsers(data.data.totalUsers)
+        setCurrentPage(page)
+        
+        // 更新統計數據
+        setAdminCount(data.data.adminCount)
+        setUserCount(data.data.userCount)
       } else {
         setError(data.error || '載入用戶列表失敗')
       }
@@ -89,7 +104,7 @@ function UsersManagementContent() {
 
       if (data.success) {
         // 重新載入用戶列表
-        await loadUsers()
+        await loadUsers(currentPage)
         
         setNewUser({
           name: "",
@@ -150,7 +165,7 @@ function UsersManagementContent() {
 
       if (data.success) {
         // 重新載入用戶列表
-        await loadUsers()
+        await loadUsers(currentPage)
         
         setEditingUser(null)
         setNewUser({
@@ -189,7 +204,7 @@ function UsersManagementContent() {
 
       if (data.success) {
         // 重新載入用戶列表
-        await loadUsers()
+        await loadUsers(currentPage)
         setDeletingUser(null)
       } else {
         setError(data.error || '刪除用戶失敗')
@@ -197,6 +212,25 @@ function UsersManagementContent() {
     } catch (err) {
       console.error('刪除用戶錯誤:', err)
       setError('刪除用戶時發生錯誤')
+    }
+  }
+
+  // 分頁控制函數
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      loadUsers(page)
+    }
+  }
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      handlePageChange(currentPage - 1)
+    }
+  }
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      handlePageChange(currentPage + 1)
     }
   }
 
@@ -229,7 +263,7 @@ function UsersManagementContent() {
                 <CardTitle className="text-sm font-medium text-muted-foreground">總用戶數</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{users.length}</div>
+                <div className="text-2xl font-bold">{totalUsers}</div>
               </CardContent>
             </Card>
 
@@ -238,7 +272,7 @@ function UsersManagementContent() {
                 <CardTitle className="text-sm font-medium text-muted-foreground">管理員</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{users.filter((u) => u.role === "admin").length}</div>
+                <div className="text-2xl font-bold">{adminCount}</div>
               </CardContent>
             </Card>
 
@@ -247,7 +281,7 @@ function UsersManagementContent() {
                 <CardTitle className="text-sm font-medium text-muted-foreground">一般用戶</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{users.filter((u) => u.role === "user").length}</div>
+                <div className="text-2xl font-bold">{userCount}</div>
               </CardContent>
             </Card>
           </div>
@@ -431,6 +465,50 @@ function UsersManagementContent() {
               </Table>
             </CardContent>
           </Card>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-6">
+              <div className="text-sm text-muted-foreground">
+                顯示第 {((currentPage - 1) * usersPerPage) + 1} - {Math.min(currentPage * usersPerPage, totalUsers)} 筆，共 {totalUsers} 筆
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  上一頁
+                </Button>
+                
+                <div className="flex items-center space-x-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handlePageChange(page)}
+                      className="w-8 h-8 p-0"
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                </div>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                >
+                  下一頁
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
 
           {/* Edit User Dialog */}
           <Dialog open={!!editingUser} onOpenChange={() => setEditingUser(null)}>
