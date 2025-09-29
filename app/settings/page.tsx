@@ -61,42 +61,49 @@ function SettingsContent() {
     setIsLoading(true)
 
     try {
-      // Get all users
-      const users = JSON.parse(localStorage.getItem("hr_users") || "[]")
-
-      // Check if email is already taken by another user
-      const emailExists = users.some((u: any) => u.email === profileData.email && u.id !== user?.id)
-      if (emailExists) {
-        setError("該電子郵件已被其他用戶使用")
+      if (!user) {
+        setError("用戶未登入")
         return
       }
 
-      // Update user data
-      const updatedUsers = users.map((u: any) =>
-        u.id === user?.id
-          ? { ...u, name: profileData.name, email: profileData.email, department: profileData.department }
-          : u,
-      )
+      // 更新個人資料到資料庫
+      const response = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          name: profileData.name,
+          email: profileData.email,
+          department: profileData.department,
+        }),
+      })
 
-      localStorage.setItem("hr_users", JSON.stringify(updatedUsers))
+      const data = await response.json()
 
-      // Update current user session
-      const updatedUser = {
-        ...user!,
-        name: profileData.name,
-        email: profileData.email,
-        department: profileData.department,
+      if (data.success) {
+        // 更新本地用戶資料
+        const updatedUser = {
+          ...user,
+          name: profileData.name,
+          email: profileData.email,
+          department: profileData.department,
+        }
+        localStorage.setItem("hr_current_user", JSON.stringify(updatedUser))
+
+        setMessage("個人資料已成功更新")
+
+        // 刷新頁面以更新用戶上下文
+        setTimeout(() => {
+          window.location.reload()
+        }, 1500)
+      } else {
+        setError(data.error || "更新個人資料失敗")
       }
-      localStorage.setItem("hr_current_user", JSON.stringify(updatedUser))
-
-      setMessage("個人資料已成功更新")
-
-      // Refresh page to update user context
-      setTimeout(() => {
-        window.location.reload()
-      }, 1500)
     } catch (err) {
-      setError("更新失敗，請稍後再試")
+      console.error('更新個人資料錯誤:', err)
+      setError("更新個人資料時發生錯誤")
     } finally {
       setIsLoading(false)
     }
@@ -119,30 +126,40 @@ function SettingsContent() {
     setIsLoading(true)
 
     try {
-      // Get all users
-      const users = JSON.parse(localStorage.getItem("hr_users") || "[]")
-
-      // Find current user and verify current password
-      const currentUser = users.find((u: any) => u.id === user?.id)
-      if (!currentUser || currentUser.password !== passwordData.currentPassword) {
-        setError("目前密碼不正確")
+      if (!user) {
+        setError("用戶未登入")
         return
       }
 
-      // Update password
-      const updatedUsers = users.map((u: any) => (u.id === user?.id ? { ...u, password: passwordData.newPassword } : u))
-
-      localStorage.setItem("hr_users", JSON.stringify(updatedUsers))
-
-      setPasswordData({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
+      // 更新密碼到資料庫
+      const response = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword,
+        }),
       })
 
-      setMessage("密碼已成功更新")
+      const data = await response.json()
+
+      if (data.success) {
+        setPasswordData({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        })
+
+        setMessage("密碼已成功更新")
+      } else {
+        setError(data.error || "密碼更新失敗")
+      }
     } catch (err) {
-      setError("密碼更新失敗，請稍後再試")
+      console.error('密碼更新錯誤:', err)
+      setError("密碼更新時發生錯誤")
     } finally {
       setIsLoading(false)
     }
