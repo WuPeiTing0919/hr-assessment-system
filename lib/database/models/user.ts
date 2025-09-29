@@ -72,8 +72,10 @@ export async function createUser(userData: CreateUserData): Promise<User | null>
     // 生成簡單的 UUID
     const userId = `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
     
-    // 雜湊密碼
-    const hashedPassword = await hashPassword(password)
+    // 檢查密碼是否已經加密（bcrypt 雜湊以 $2b$ 開頭）
+    const isAlreadyHashed = password.startsWith('$2b$')
+    const hashedPassword = isAlreadyHashed ? password : await hashPassword(password)
+    
     await executeQuery(query, [userId, name, email, hashedPassword, department, role])
     return await findUserByEmail(email)
   } catch (error) {

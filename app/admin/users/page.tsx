@@ -18,7 +18,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Plus, Edit, Trash2, ArrowLeft } from "lucide-react"
+import { Plus, Edit, Trash2, ArrowLeft, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 import { useAuth, type User } from "@/lib/hooks/use-auth"
 
@@ -36,6 +36,7 @@ function UsersManagementContent() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [deletingUser, setDeletingUser] = useState<User | null>(null)
+  const [showPassword, setShowPassword] = useState(false)
   const [newUser, setNewUser] = useState({
     name: "",
     email: "",
@@ -295,13 +296,43 @@ function UsersManagementContent() {
 
                       <div className="space-y-2">
                         <Label htmlFor="password">密碼</Label>
-                        <Input
-                          id="password"
-                          type="password"
-                          value={newUser.password}
-                          onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                          placeholder="請輸入密碼"
-                        />
+                        <div className="flex gap-2">
+                          <div className="relative flex-1">
+                            <Input
+                              id="password"
+                              type={showPassword ? "text" : "password"}
+                              value={newUser.password}
+                              onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                              placeholder="請輸入密碼或使用預設密碼"
+                              className="pr-10"
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            >
+                              {showPassword ? (
+                                <EyeOff className="h-4 w-4 text-muted-foreground" />
+                              ) : (
+                                <Eye className="h-4 w-4 text-muted-foreground" />
+                              )}
+                            </Button>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setNewUser({ ...newUser, password: "password123" })}
+                            className="whitespace-nowrap"
+                          >
+                            使用預設密碼
+                          </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          預設密碼：password123（建議用戶首次登入後修改）
+                        </p>
                       </div>
 
                       <div className="space-y-2">
