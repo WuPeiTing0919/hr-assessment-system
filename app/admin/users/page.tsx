@@ -257,31 +257,31 @@ function UsersManagementContent() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">總用戶數</CardTitle>
+          <div className="grid grid-cols-3 md:grid-cols-3 gap-3 md:gap-6 mb-6 md:mb-8">
+            <Card className="p-3 md:p-6">
+              <CardHeader className="pb-1 md:pb-2 p-0">
+                <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground text-center md:text-left">總用戶數</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{totalUsers}</div>
+              <CardContent className="p-0">
+                <div className="text-lg md:text-2xl font-bold text-center md:text-left">{totalUsers}</div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">管理員</CardTitle>
+            <Card className="p-3 md:p-6">
+              <CardHeader className="pb-1 md:pb-2 p-0">
+                <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground text-center md:text-left">管理員</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{adminCount}</div>
+              <CardContent className="p-0">
+                <div className="text-lg md:text-2xl font-bold text-center md:text-left">{adminCount}</div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">一般用戶</CardTitle>
+            <Card className="p-3 md:p-6">
+              <CardHeader className="pb-1 md:pb-2 p-0">
+                <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground text-center md:text-left">一般用戶</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{userCount}</div>
+              <CardContent className="p-0">
+                <div className="text-lg md:text-2xl font-bold text-center md:text-left">{userCount}</div>
               </CardContent>
             </Card>
           </div>
@@ -468,11 +468,13 @@ function UsersManagementContent() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-6">
-              <div className="text-sm text-muted-foreground">
+            <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4">
+              <div className="text-sm text-muted-foreground text-center sm:text-left">
                 顯示第 {((currentPage - 1) * usersPerPage) + 1} - {Math.min(currentPage * usersPerPage, totalUsers)} 筆，共 {totalUsers} 筆
               </div>
-              <div className="flex items-center space-x-2">
+              
+              {/* Desktop Pagination */}
+              <div className="hidden sm:flex items-center space-x-2">
                 <Button
                   variant="outline"
                   size="sm"
@@ -505,6 +507,101 @@ function UsersManagementContent() {
                 >
                   下一頁
                   <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Mobile Pagination */}
+              <div className="flex sm:hidden items-center space-x-2 w-full justify-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 1}
+                  className="flex-1 max-w-[80px]"
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  上一頁
+                </Button>
+                
+                <div className="flex items-center space-x-1 px-2">
+                  {(() => {
+                    const maxVisiblePages = 3
+                    const startPage = Math.max(1, currentPage - 1)
+                    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
+                    const pages = []
+                    
+                    // 如果不在第一頁，顯示第一頁和省略號
+                    if (startPage > 1) {
+                      pages.push(
+                        <Button
+                          key={1}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePageChange(1)}
+                          className="w-8 h-8 p-0"
+                        >
+                          1
+                        </Button>
+                      )
+                      if (startPage > 2) {
+                        pages.push(
+                          <span key="ellipsis1" className="text-muted-foreground px-1">
+                            ...
+                          </span>
+                        )
+                      }
+                    }
+                    
+                    // 顯示當前頁附近的頁碼
+                    for (let i = startPage; i <= endPage; i++) {
+                      pages.push(
+                        <Button
+                          key={i}
+                          variant={currentPage === i ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handlePageChange(i)}
+                          className="w-8 h-8 p-0"
+                        >
+                          {i}
+                        </Button>
+                      )
+                    }
+                    
+                    // 如果不在最後一頁，顯示省略號和最後一頁
+                    if (endPage < totalPages) {
+                      if (endPage < totalPages - 1) {
+                        pages.push(
+                          <span key="ellipsis2" className="text-muted-foreground px-1">
+                            ...
+                          </span>
+                        )
+                      }
+                      pages.push(
+                        <Button
+                          key={totalPages}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePageChange(totalPages)}
+                          className="w-8 h-8 p-0"
+                        >
+                          {totalPages}
+                        </Button>
+                      )
+                    }
+                    
+                    return pages
+                  })()}
+                </div>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                  className="flex-1 max-w-[80px]"
+                >
+                  下一頁
+                  <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               </div>
             </div>
