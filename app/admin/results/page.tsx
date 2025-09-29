@@ -237,9 +237,9 @@ function AdminResultsContent() {
         const link = document.createElement('a')
         link.href = url
         link.download = data.filename
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
         window.URL.revokeObjectURL(url)
       } else {
         console.error('匯出失敗:', data.message)
@@ -299,44 +299,44 @@ function AdminResultsContent() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto space-y-8">
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
             <Card>
-              <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <BarChart3 className="w-6 h-6 text-primary" />
+              <CardContent className="p-3 md:p-6 text-center">
+                <div className="w-8 h-8 md:w-12 md:h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2 md:mb-3">
+                  <BarChart3 className="w-4 h-4 md:w-6 md:h-6 text-primary" />
                 </div>
-                <div className="text-2xl font-bold text-foreground mb-1">{stats.totalResults}</div>
-                <div className="text-sm text-muted-foreground">總測試次數</div>
+                <div className="text-lg md:text-2xl font-bold text-foreground mb-1">{stats.totalResults}</div>
+                <div className="text-xs md:text-sm text-muted-foreground">總測試次數</div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Brain className="w-6 h-6 text-blue-500" />
+              <CardContent className="p-3 md:p-6 text-center">
+                <div className="w-8 h-8 md:w-12 md:h-12 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-2 md:mb-3">
+                  <Brain className="w-4 h-4 md:w-6 md:h-6 text-blue-500" />
                 </div>
-                <div className="text-2xl font-bold text-foreground mb-1">{stats.averageScore}</div>
-                <div className="text-sm text-muted-foreground">平均分數</div>
+                <div className="text-lg md:text-2xl font-bold text-foreground mb-1">{stats.averageScore}</div>
+                <div className="text-xs md:text-sm text-muted-foreground">平均分數</div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Lightbulb className="w-6 h-6 text-green-500" />
+              <CardContent className="p-3 md:p-6 text-center">
+                <div className="w-8 h-8 md:w-12 md:h-12 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-2 md:mb-3">
+                  <Lightbulb className="w-4 h-4 md:w-6 md:h-6 text-green-500" />
                 </div>
-                <div className="text-2xl font-bold text-foreground mb-1">{stats.totalUsers}</div>
-                <div className="text-sm text-muted-foreground">總用戶數</div>
+                <div className="text-lg md:text-2xl font-bold text-foreground mb-1">{stats.totalUsers}</div>
+                <div className="text-xs md:text-sm text-muted-foreground">總用戶數</div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 bg-purple-500/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <BarChart3 className="w-6 h-6 text-purple-500" />
+              <CardContent className="p-3 md:p-6 text-center">
+                <div className="w-8 h-8 md:w-12 md:h-12 bg-purple-500/10 rounded-full flex items-center justify-center mx-auto mb-2 md:mb-3">
+                  <BarChart3 className="w-4 h-4 md:w-6 md:h-6 text-purple-500" />
                 </div>
-                <div className="text-2xl font-bold text-foreground mb-1">{stats.participationRate}%</div>
-                <div className="text-sm text-muted-foreground">參與率</div>
+                <div className="text-lg md:text-2xl font-bold text-foreground mb-1">{stats.participationRate}%</div>
+                <div className="text-xs md:text-sm text-muted-foreground">參與率</div>
               </CardContent>
             </Card>
           </div>
@@ -431,17 +431,17 @@ function AdminResultsContent() {
               ) : (
                 <>
               <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>用戶</TableHead>
-                        <TableHead>部門</TableHead>
-                        <TableHead>測試類型</TableHead>
-                        <TableHead>分數</TableHead>
-                        <TableHead>等級</TableHead>
-                        <TableHead>完成時間</TableHead>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>用戶</TableHead>
+                    <TableHead>部門</TableHead>
+                    <TableHead>測試類型</TableHead>
+                    <TableHead>分數</TableHead>
+                    <TableHead>等級</TableHead>
+                    <TableHead>完成時間</TableHead>
                         <TableHead>操作</TableHead>
-                      </TableRow>
-                    </TableHeader>
+                  </TableRow>
+                </TableHeader>
                 <TableBody>
                       {results.map((result) => {
                         const testTypeInfo = getTestTypeInfo(result.type)
@@ -475,7 +475,7 @@ function AdminResultsContent() {
                                 {scoreLevel.level}
                               </Badge>
                         </TableCell>
-                            <TableCell>
+                        <TableCell>
                               <div className="text-sm">{formatDate(result.completedAt)}</div>
                             </TableCell>
                             <TableCell>
@@ -488,8 +488,8 @@ function AdminResultsContent() {
                                 <Eye className="w-4 h-4" />
                                 查看詳情
                               </Button>
-                            </TableCell>
-                          </TableRow>
+                        </TableCell>
+                      </TableRow>
                     )
                   })}
                 </TableBody>
@@ -644,7 +644,7 @@ function AdminResultsContent() {
 
       {/* 詳細結果模態框 */}
       <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto w-[95vw] max-w-[95vw] sm:w-auto sm:max-w-4xl">
           <DialogHeader>
             <DialogTitle>測驗詳細結果</DialogTitle>
             <DialogDescription>
@@ -665,7 +665,7 @@ function AdminResultsContent() {
                   <CardTitle>基本資訊</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">用戶姓名</label>
                       <p className="text-sm">{detailData.user.name}</p>
@@ -715,43 +715,43 @@ function AdminResultsContent() {
                             {detailData.questions
                               .filter((q: any) => q.type === 'logic')
                               .map((question: any, index: number) => (
-                              <div key={index} className="border rounded-lg p-4 bg-blue-50/30">
-                                <div className="flex items-start justify-between mb-3">
-                                  <h4 className="font-medium">第 {index + 1} 題</h4>
-                                  <Badge variant={question.isCorrect ? "default" : "destructive"}>
+                              <div key={index} className="border rounded-lg p-3 sm:p-4 bg-blue-50/30">
+                                <div className="flex items-start justify-between mb-2 sm:mb-3">
+                                  <h4 className="font-medium text-sm sm:text-base">第 {index + 1} 題</h4>
+                                  <Badge variant={question.isCorrect ? "default" : "destructive"} className="text-xs">
                                     {question.isCorrect ? "正確" : "錯誤"}
                                   </Badge>
                                 </div>
                                 
-                                <div className="space-y-3">
+                                <div className="space-y-2 sm:space-y-3">
                                   <div>
                                     <label className="text-sm font-medium text-muted-foreground">題目內容</label>
-                                    <p className="text-sm mt-1">{question.question}</p>
+                                    <p className="text-xs sm:text-sm mt-1 break-words">{question.question}</p>
                                   </div>
 
-                                  <div className="grid grid-cols-2 gap-4">
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                     <div>
                                       <label className="text-sm font-medium text-muted-foreground">選項</label>
                                       <div className="space-y-1 mt-1">
-                                        {question.option_a && <p className="text-sm">A. {question.option_a}</p>}
-                                        {question.option_b && <p className="text-sm">B. {question.option_b}</p>}
-                                        {question.option_c && <p className="text-sm">C. {question.option_c}</p>}
-                                        {question.option_d && <p className="text-sm">D. {question.option_d}</p>}
-                                        {question.option_e && <p className="text-sm">E. {question.option_e}</p>}
+                                        {question.option_a && <p className="text-xs sm:text-sm break-words">A. {question.option_a}</p>}
+                                        {question.option_b && <p className="text-xs sm:text-sm break-words">B. {question.option_b}</p>}
+                                        {question.option_c && <p className="text-xs sm:text-sm break-words">C. {question.option_c}</p>}
+                                        {question.option_d && <p className="text-xs sm:text-sm break-words">D. {question.option_d}</p>}
+                                        {question.option_e && <p className="text-xs sm:text-sm break-words">E. {question.option_e}</p>}
                                       </div>
                                     </div>
                                     <div>
                                       <label className="text-sm font-medium text-muted-foreground">答案</label>
                                       <div className="space-y-1 mt-1">
-                                        <p className="text-sm">用戶答案: <span className="font-bold">{question.userAnswer}</span></p>
-                                        <p className="text-sm">正確答案: <span className="font-bold text-green-600">{question.correctAnswer}</span></p>
+                                        <p className="text-xs sm:text-sm">用戶答案: <span className="font-bold">{question.userAnswer}</span></p>
+                                        <p className="text-xs sm:text-sm">正確答案: <span className="font-bold text-green-600">{question.correctAnswer}</span></p>
                                       </div>
                                     </div>
                                   </div>
                                   {question.explanation && (
                                     <div>
                                       <label className="text-sm font-medium text-muted-foreground">解釋</label>
-                                      <p className="text-sm mt-1">{question.explanation}</p>
+                                      <p className="text-xs sm:text-sm mt-1 break-words">{question.explanation}</p>
                                     </div>
                                   )}
                                 </div>
@@ -772,28 +772,28 @@ function AdminResultsContent() {
                             {detailData.questions
                               .filter((q: any) => q.type === 'creative')
                               .map((question: any, index: number) => (
-                              <div key={index} className="border rounded-lg p-4 bg-green-50/30">
-                                <div className="flex items-start justify-between mb-3">
-                                  <h4 className="font-medium">第 {index + 1} 題</h4>
-                                  <Badge variant="outline" className="text-green-600 border-green-600">
+                              <div key={index} className="border rounded-lg p-3 sm:p-4 bg-green-50/30">
+                                <div className="flex items-start justify-between mb-2 sm:mb-3">
+                                  <h4 className="font-medium text-sm sm:text-base">第 {index + 1} 題</h4>
+                                  <Badge variant="outline" className="text-green-600 border-green-600 text-xs">
                                     {question.score} 分
                                   </Badge>
                                 </div>
                                 
-                                <div className="space-y-3">
+                                <div className="space-y-2 sm:space-y-3">
                                   <div>
                                     <label className="text-sm font-medium text-muted-foreground">題目內容</label>
-                                    <p className="text-sm mt-1">{question.statement}</p>
+                                    <p className="text-xs sm:text-sm mt-1 break-words">{question.statement}</p>
                                   </div>
 
-                                  <div className="grid grid-cols-2 gap-4">
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                     <div>
                                       <label className="text-sm font-medium text-muted-foreground">用戶答案</label>
-                                      <p className="text-sm mt-1">{question.userAnswer}</p>
+                                      <p className="text-xs sm:text-sm mt-1">{question.userAnswer}</p>
                                     </div>
                                     <div>
                                       <label className="text-sm font-medium text-muted-foreground">得分</label>
-                                      <p className="text-sm mt-1 font-bold">{question.score} 分</p>
+                                      <p className="text-xs sm:text-sm mt-1 font-bold">{question.score} 分</p>
                                     </div>
                                   </div>
                                 </div>

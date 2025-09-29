@@ -249,54 +249,54 @@ function AnalyticsContent() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto space-y-8">
           {/* Overall Statistics */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-6">
             <Card>
-              <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Users className="w-6 h-6 text-primary" />
+              <CardContent className="p-3 md:p-6 text-center">
+                <div className="w-8 h-8 md:w-12 md:h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2 md:mb-3">
+                  <Users className="w-4 h-4 md:w-6 md:h-6 text-primary" />
                 </div>
-                <div className="text-2xl font-bold text-foreground mb-1">{overallStats.totalUsers}</div>
-                <div className="text-sm text-muted-foreground">總用戶數</div>
+                <div className="text-lg md:text-2xl font-bold text-foreground mb-1">{overallStats.totalUsers}</div>
+                <div className="text-xs md:text-sm text-muted-foreground">總用戶數</div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Target className="w-6 h-6 text-blue-500" />
+              <CardContent className="p-3 md:p-6 text-center">
+                <div className="w-8 h-8 md:w-12 md:h-12 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-2 md:mb-3">
+                  <Target className="w-4 h-4 md:w-6 md:h-6 text-blue-500" />
                 </div>
-                <div className="text-2xl font-bold text-foreground mb-1">{overallStats.totalParticipants}</div>
-                <div className="text-sm text-muted-foreground">參與用戶</div>
+                <div className="text-lg md:text-2xl font-bold text-foreground mb-1">{overallStats.totalParticipants}</div>
+                <div className="text-xs md:text-sm text-muted-foreground">參與用戶</div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <TrendingUp className="w-6 h-6 text-green-500" />
+              <CardContent className="p-3 md:p-6 text-center">
+                <div className="w-8 h-8 md:w-12 md:h-12 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-2 md:mb-3">
+                  <TrendingUp className="w-4 h-4 md:w-6 md:h-6 text-green-500" />
                 </div>
-                <div className="text-2xl font-bold text-foreground mb-1">{overallStats.overallParticipationRate}%</div>
-                <div className="text-sm text-muted-foreground">參與率</div>
+                <div className="text-lg md:text-2xl font-bold text-foreground mb-1">{overallStats.overallParticipationRate}%</div>
+                <div className="text-xs md:text-sm text-muted-foreground">參與率</div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Award className="w-6 h-6 text-accent" />
+              <CardContent className="p-3 md:p-6 text-center">
+                <div className="w-8 h-8 md:w-12 md:h-12 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-2 md:mb-3">
+                  <Award className="w-4 h-4 md:w-6 md:h-6 text-accent" />
                 </div>
-                <div className="text-2xl font-bold text-foreground mb-1">{overallStats.averageScore}</div>
-                <div className="text-sm text-muted-foreground">平均分數</div>
+                <div className="text-lg md:text-2xl font-bold text-foreground mb-1">{overallStats.averageScore}</div>
+                <div className="text-xs md:text-sm text-muted-foreground">平均分數</div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 bg-purple-500/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <BarChart3 className="w-6 h-6 text-purple-500" />
+              <CardContent className="p-3 md:p-6 text-center">
+                <div className="w-8 h-8 md:w-12 md:h-12 bg-purple-500/10 rounded-full flex items-center justify-center mx-auto mb-2 md:mb-3">
+                  <BarChart3 className="w-4 h-4 md:w-6 md:h-6 text-purple-500" />
                 </div>
-                <div className="text-2xl font-bold text-foreground mb-1">{overallStats.totalTests}</div>
-                <div className="text-sm text-muted-foreground">總測試次數</div>
+                <div className="text-lg md:text-2xl font-bold text-foreground mb-1">{overallStats.totalTests}</div>
+                <div className="text-xs md:text-sm text-muted-foreground">總測試次數</div>
               </CardContent>
             </Card>
           </div>
