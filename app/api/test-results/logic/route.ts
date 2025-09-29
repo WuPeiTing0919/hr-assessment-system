@@ -110,8 +110,7 @@ export async function POST(request: NextRequest) {
     console.error('上傳邏輯測驗結果失敗:', error)
     console.error('錯誤詳情:', {
       message: error instanceof Error ? error.message : '未知錯誤',
-      stack: error instanceof Error ? error.stack : undefined,
-      body: body
+      stack: error instanceof Error ? error.stack : undefined
     })
     return NextResponse.json(
       { 

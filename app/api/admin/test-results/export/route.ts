@@ -35,21 +35,24 @@ export async function GET(request: NextRequest) {
         if (result.test_type === 'logic') {
           const logicAnswers = await getLogicTestAnswersByTestResultId(result.id)
           if (logicAnswers.length > 0) {
-            const logicAnswer = logicAnswers[0]
+            const correctAnswers = logicAnswers.filter(answer => answer.is_correct).length
+            const totalQuestions = logicAnswers.length
+            const accuracy = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0
             details = {
-              correctAnswers: logicAnswer.correct_answers,
-              totalQuestions: logicAnswer.total_questions,
-              accuracy: logicAnswer.accuracy
+              correctAnswers,
+              totalQuestions,
+              accuracy
             }
           }
         } else if (result.test_type === 'creative') {
           const creativeAnswers = await getCreativeTestAnswersByTestResultId(result.id)
           if (creativeAnswers.length > 0) {
-            const creativeAnswer = creativeAnswers[0]
+            const totalScore = creativeAnswers.reduce((sum, answer) => sum + answer.score, 0)
+            const maxScore = creativeAnswers.length * 5 // Assuming max score per question is 5
             details = {
-              dimensionScores: creativeAnswer.dimension_scores,
-              totalScore: creativeAnswer.total_score,
-              maxScore: creativeAnswer.max_score
+              dimensionScores: {}, // This would need to be calculated based on question categories
+              totalScore,
+              maxScore
             }
           }
         }

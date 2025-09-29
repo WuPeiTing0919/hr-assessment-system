@@ -42,7 +42,7 @@ export default function CreativeResultsPage() {
 
         if (data.success && data.data.length > 0) {
           // 按創建時間排序，取最新的結果
-          const sortedResults = data.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+          const sortedResults = data.data.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
           const latestResult = sortedResults[0]
           
           // 獲取題目資料來計算各維度分數

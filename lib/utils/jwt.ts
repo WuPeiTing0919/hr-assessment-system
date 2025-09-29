@@ -12,7 +12,7 @@ export interface JWTPayload {
 
 // 生成 JWT Token
 export function generateToken(payload: JWTPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN })
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN as string | number })
 }
 
 // 驗證 JWT Token

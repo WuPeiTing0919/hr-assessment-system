@@ -446,7 +446,7 @@ function UsersManagementContent() {
                           {user.role === "admin" ? "管理員" : "一般用戶"}
                         </Badge>
                       </TableCell>
-                      <TableCell>{new Date(user.created_at).toLocaleDateString("zh-TW")}</TableCell>
+                      <TableCell>{new Date(user.createdAt).toLocaleDateString("zh-TW")}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
                           <Button variant="ghost" size="sm" onClick={() => handleEditUser(user)}>

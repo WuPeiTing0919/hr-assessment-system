@@ -94,14 +94,14 @@ export async function GET(request: NextRequest) {
             console.log('Debug: 所有創意題目數量:', allCreativeQuestions.length)
             
             for (let i = 0; i < answerEntries.length; i++) {
-              const [questionIndex, score] = answerEntries[i]
+              const [questionIndex, score] = answerEntries[i] as [string, number]
               const question = allCreativeQuestions[parseInt(questionIndex)] // 使用索引獲取題目
               if (question) {
                 questions.push({
                   ...question,
                   type: 'creative',
                   userAnswer: score.toString(), // 創意題的答案就是分數
-                  score: score as number,
+                  score: score,
                   isReverse: question.is_reverse
                 })
               }

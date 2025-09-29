@@ -2,13 +2,11 @@ import { NextRequest, NextResponse } from "next/server"
 import * as XLSX from "xlsx"
 import { 
   createLogicQuestion, 
-  updateLogicQuestion, 
   getAllLogicQuestions,
   clearLogicQuestions 
 } from "@/lib/database/models/logic_question"
 import { 
   createCreativeQuestion, 
-  updateCreativeQuestion, 
   getAllCreativeQuestions,
   clearCreativeQuestions 
 } from "@/lib/database/models/creative_question"
