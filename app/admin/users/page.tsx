@@ -35,6 +35,7 @@ function UsersManagementContent() {
   const [users, setUsers] = useState<(User & { password?: string })[]>([])
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [deletingUser, setDeletingUser] = useState<User | null>(null)
   const [newUser, setNewUser] = useState({
     name: "",
     email: "",
@@ -50,12 +51,23 @@ function UsersManagementContent() {
     loadUsers()
   }, [])
 
-  const loadUsers = () => {
-    const usersData = JSON.parse(localStorage.getItem("hr_users") || "[]")
-    setUsers(usersData)
+  const loadUsers = async () => {
+    try {
+      const response = await fetch('/api/admin/users')
+      const data = await response.json()
+      
+      if (data.success) {
+        setUsers(data.data)
+      } else {
+        setError(data.error || '載入用戶列表失敗')
+      }
+    } catch (err) {
+      console.error('載入用戶列表錯誤:', err)
+      setError('載入用戶列表時發生錯誤')
+    }
   }
 
-  const handleAddUser = () => {
+  const handleAddUser = async () => {
     setError("")
 
     if (!newUser.name || !newUser.email || !newUser.password || !newUser.department) {
@@ -63,29 +75,36 @@ function UsersManagementContent() {
       return
     }
 
-    if (users.some((u) => u.email === newUser.email)) {
-      setError("該電子郵件已被使用")
-      return
+    try {
+      const response = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newUser),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        // 重新載入用戶列表
+        await loadUsers()
+        
+        setNewUser({
+          name: "",
+          email: "",
+          password: "",
+          department: "",
+          role: "user",
+        })
+        setIsAddDialogOpen(false)
+      } else {
+        setError(data.error || '創建用戶失敗')
+      }
+    } catch (err) {
+      console.error('創建用戶錯誤:', err)
+      setError('創建用戶時發生錯誤')
     }
-
-    const user = {
-      ...newUser,
-      id: `user-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-    }
-
-    const updatedUsers = [...users, user]
-    setUsers(updatedUsers)
-    localStorage.setItem("hr_users", JSON.stringify(updatedUsers))
-
-    setNewUser({
-      name: "",
-      email: "",
-      password: "",
-      department: "",
-      role: "user",
-    })
-    setIsAddDialogOpen(false)
   }
 
   const handleEditUser = (user: User) => {
@@ -99,7 +118,7 @@ function UsersManagementContent() {
     })
   }
 
-  const handleUpdateUser = () => {
+  const handleUpdateUser = async () => {
     if (!editingUser) return
 
     setError("")
@@ -109,46 +128,75 @@ function UsersManagementContent() {
       return
     }
 
-    if (users.some((u) => u.email === newUser.email && u.id !== editingUser.id)) {
-      setError("該電子郵件已被使用")
-      return
+    try {
+      const updateData: any = {
+        id: editingUser.id,
+        name: newUser.name,
+        email: newUser.email,
+        department: newUser.department,
+        role: newUser.role,
+      }
+
+      const response = await fetch('/api/admin/users', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updateData),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        // 重新載入用戶列表
+        await loadUsers()
+        
+        setEditingUser(null)
+        setNewUser({
+          name: "",
+          email: "",
+          password: "",
+          department: "",
+          role: "user",
+        })
+      } else {
+        setError(data.error || '更新用戶失敗')
+      }
+    } catch (err) {
+      console.error('更新用戶錯誤:', err)
+      setError('更新用戶時發生錯誤')
     }
-
-    const updatedUsers = users.map((u) =>
-      u.id === editingUser.id
-        ? {
-            ...u,
-            name: newUser.name,
-            email: newUser.email,
-            department: newUser.department,
-            role: newUser.role,
-            ...(newUser.password && { password: newUser.password }),
-          }
-        : u,
-    )
-
-    setUsers(updatedUsers)
-    localStorage.setItem("hr_users", JSON.stringify(updatedUsers))
-
-    setEditingUser(null)
-    setNewUser({
-      name: "",
-      email: "",
-      password: "",
-      department: "",
-      role: "user",
-    })
   }
 
-  const handleDeleteUser = (userId: string) => {
-    if (userId === currentUser?.id) {
+  const handleDeleteUser = (user: User) => {
+    if (user.id === currentUser?.id) {
       setError("無法刪除自己的帳戶")
       return
     }
+    setDeletingUser(user)
+  }
 
-    const updatedUsers = users.filter((u) => u.id !== userId)
-    setUsers(updatedUsers)
-    localStorage.setItem("hr_users", JSON.stringify(updatedUsers))
+  const confirmDeleteUser = async () => {
+    if (!deletingUser) return
+
+    try {
+      const response = await fetch(`/api/admin/users?id=${deletingUser.id}`, {
+        method: 'DELETE',
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        // 重新載入用戶列表
+        await loadUsers()
+        setDeletingUser(null)
+      } else {
+        setError(data.error || '刪除用戶失敗')
+      }
+    } catch (err) {
+      console.error('刪除用戶錯誤:', err)
+      setError('刪除用戶時發生錯誤')
+    }
   }
 
   return (
@@ -333,14 +381,14 @@ function UsersManagementContent() {
                           {user.role === "admin" ? "管理員" : "一般用戶"}
                         </Badge>
                       </TableCell>
-                      <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+                      <TableCell>{new Date(user.created_at).toLocaleDateString("zh-TW")}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
                           <Button variant="ghost" size="sm" onClick={() => handleEditUser(user)}>
                             <Edit className="w-4 h-4" />
                           </Button>
                           {user.id !== currentUser?.id && (
-                            <Button variant="ghost" size="sm" onClick={() => handleDeleteUser(user.id)}>
+                            <Button variant="ghost" size="sm" onClick={() => handleDeleteUser(user)}>
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           )}
@@ -382,16 +430,6 @@ function UsersManagementContent() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="edit-password">新密碼（留空表示不修改）</Label>
-                  <Input
-                    id="edit-password"
-                    type="password"
-                    value={newUser.password}
-                    onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                    placeholder="請輸入新密碼"
-                  />
-                </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="edit-department">部門</Label>
@@ -442,6 +480,80 @@ function UsersManagementContent() {
                     取消
                   </Button>
                 </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Delete Confirmation Dialog */}
+          <Dialog open={!!deletingUser} onOpenChange={() => setDeletingUser(null)}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-destructive/10 flex items-center justify-center">
+                    <Trash2 className="w-4 h-4 text-destructive" />
+                  </div>
+                  確認刪除用戶
+                </DialogTitle>
+                <DialogDescription className="text-left">
+                  此操作無法復原。您確定要刪除以下用戶嗎？
+                </DialogDescription>
+              </DialogHeader>
+              
+              {deletingUser && (
+                <div className="space-y-4">
+                  <div className="p-4 bg-muted/50 rounded-lg border">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-muted-foreground">姓名：</span>
+                        <span className="text-sm font-medium">{deletingUser.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-muted-foreground">電子郵件：</span>
+                        <span className="text-sm">{deletingUser.email}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-muted-foreground">部門：</span>
+                        <span className="text-sm">{deletingUser.department}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-muted-foreground">角色：</span>
+                        <Badge variant={deletingUser.role === "admin" ? "default" : "secondary"} className="text-xs">
+                          {deletingUser.role === "admin" ? "管理員" : "一般用戶"}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-3">
+                    <div className="flex items-start gap-2">
+                      <div className="w-4 h-4 rounded-full bg-destructive/20 flex items-center justify-center mt-0.5 flex-shrink-0">
+                        <div className="w-2 h-2 rounded-full bg-destructive"></div>
+                      </div>
+                      <div className="text-sm text-destructive/80">
+                        <p className="font-medium">警告</p>
+                        <p>刪除用戶後，該用戶的所有測試記錄和相關資料也將被永久刪除。</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setDeletingUser(null)}
+                  className="flex-1"
+                >
+                  取消
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={confirmDeleteUser}
+                  className="flex-1"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  確認刪除
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
