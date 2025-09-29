@@ -176,9 +176,12 @@ export default function CombinedTestPage() {
 
       // Calculate creativity score
       let creativityTotal = 0
+      const processedCreativeAnswers: Record<number, number> = {}
       creativeQuestions.forEach((question, index) => {
         const answer = creativeAnswers[index] || 1
-        creativityTotal += question.is_reverse ? 6 - answer : answer
+        const processedScore = question.is_reverse ? 6 - answer : answer
+        creativityTotal += processedScore
+        processedCreativeAnswers[index] = processedScore
       })
       const creativityMaxScore = creativeQuestions.length * 5
       const creativityScore = Math.round((creativityTotal / creativityMaxScore) * 100)
@@ -196,7 +199,7 @@ export default function CombinedTestPage() {
         description: combinedResult.description,
         breakdown: combinedResult.breakdown,
         logicAnswers,
-        creativeAnswers,
+        creativeAnswers: processedCreativeAnswers,
         logicCorrect,
         creativityTotal,
         creativityMaxScore,
@@ -223,7 +226,7 @@ export default function CombinedTestPage() {
         creativityBreakdown: {
           total: creativityTotal,
           maxScore: creativityMaxScore,
-          answers: creativeAnswers
+          answers: processedCreativeAnswers
         },
         balanceScore: combinedResult.breakdown.balance,
         completedAt: new Date().toISOString()
