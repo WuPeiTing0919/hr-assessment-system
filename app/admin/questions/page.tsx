@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ProtectedRoute } from "@/components/protected-route"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -23,11 +23,32 @@ import {
   CheckCircle,
   AlertCircle,
   Info,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react"
 import Link from "next/link"
-import { logicQuestions } from "@/lib/questions/logic-questions"
-import { creativeQuestions } from "@/lib/questions/creative-questions"
 import { parseExcelFile, type ImportResult } from "@/lib/utils/excel-parser"
+
+// 定義題目類型
+interface LogicQuestion {
+  id: number
+  question: string
+  option_a: string
+  option_b: string
+  option_c: string
+  option_d: string
+  option_e?: string
+  correct_answer: string
+  explanation: string
+}
+
+interface CreativeQuestion {
+  id: number
+  statement: string
+  category: string
+  is_reverse: boolean
+}
 
 export default function QuestionsManagementPage() {
   return (
@@ -43,6 +64,77 @@ function QuestionsManagementContent() {
   const [importResult, setImportResult] = useState<ImportResult | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [importType, setImportType] = useState<"logic" | "creative">("logic")
+  
+  // 題目狀態
+  const [logicQuestions, setLogicQuestions] = useState<LogicQuestion[]>([])
+  const [creativeQuestions, setCreativeQuestions] = useState<CreativeQuestion[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  
+  // 分頁狀態
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(10)
+
+  // 分頁計算
+  const totalPages = Math.ceil(creativeQuestions.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const currentCreativeQuestions = creativeQuestions.slice(startIndex, endIndex)
+
+  // 分頁處理函數
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1)
+    }
+  }
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1)
+    }
+  }
+
+  // 從資料庫獲取題目
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+
+        // 並行獲取兩種題目
+        const [logicResponse, creativeResponse] = await Promise.all([
+          fetch('/api/questions/logic'),
+          fetch('/api/questions/creative')
+        ])
+
+        if (!logicResponse.ok || !creativeResponse.ok) {
+          throw new Error('獲取題目失敗')
+        }
+
+        const logicData = await logicResponse.json()
+        const creativeData = await creativeResponse.json()
+
+        if (logicData.success) {
+          setLogicQuestions(logicData.data)
+        }
+
+        if (creativeData.success) {
+          setCreativeQuestions(creativeData.data)
+        }
+      } catch (err) {
+        console.error('獲取題目失敗:', err)
+        setError(err instanceof Error ? err.message : '獲取題目失敗')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchQuestions()
+  }, [])
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -285,28 +377,42 @@ function QuestionsManagementContent() {
                     <Badge variant="outline">{logicQuestions.length} 道題目</Badge>
                   </div>
 
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>題目ID</TableHead>
-                        <TableHead>題目內容</TableHead>
-                        <TableHead>選項數量</TableHead>
-                        <TableHead>正確答案</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {logicQuestions.slice(0, 10).map((question) => (
-                        <TableRow key={question.id}>
-                          <TableCell className="font-medium">{question.id}</TableCell>
-                          <TableCell className="max-w-md truncate">{question.question}</TableCell>
-                          <TableCell>{question.options.length}</TableCell>
-                          <TableCell>
-                            <Badge className="bg-green-500 text-white">{question.correctAnswer}</Badge>
-                          </TableCell>
+                  {isLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                      <span>載入題目中...</span>
+                    </div>
+                  ) : error ? (
+                    <Alert variant="destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>題目ID</TableHead>
+                          <TableHead>題目內容</TableHead>
+                          <TableHead>選項數量</TableHead>
+                          <TableHead>正確答案</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {logicQuestions.map((question) => (
+                          <TableRow key={question.id}>
+                            <TableCell className="font-medium">{question.id}</TableCell>
+                            <TableCell className="max-w-md truncate">{question.question}</TableCell>
+                            <TableCell>
+                              {question.option_e ? 5 : 4}
+                            </TableCell>
+                            <TableCell>
+                              <Badge className="bg-green-500 text-white">{question.correct_answer}</Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
                 </TabsContent>
 
                 <TabsContent value="creative" className="space-y-4">
@@ -315,34 +421,187 @@ function QuestionsManagementContent() {
                     <Badge variant="outline">{creativeQuestions.length} 道題目</Badge>
                   </div>
 
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>題目ID</TableHead>
-                        <TableHead>陳述內容</TableHead>
-                        <TableHead>類別</TableHead>
-                        <TableHead>反向計分</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {creativeQuestions.slice(0, 10).map((question) => (
-                        <TableRow key={question.id}>
-                          <TableCell className="font-medium">{question.id}</TableCell>
-                          <TableCell className="max-w-md truncate">{question.statement}</TableCell>
-                          <TableCell>
-                            <Badge variant="secondary">{question.category}</Badge>
-                          </TableCell>
-                          <TableCell>
-                            {question.isReverse ? (
-                              <Badge className="bg-orange-500 text-white">是</Badge>
-                            ) : (
-                              <Badge variant="outline">否</Badge>
-                            )}
-                          </TableCell>
+                  {isLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                      <span>載入題目中...</span>
+                    </div>
+                  ) : error ? (
+                    <Alert variant="destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>題目ID</TableHead>
+                          <TableHead>陳述內容</TableHead>
+                          <TableHead>類別</TableHead>
+                          <TableHead>反向計分</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {currentCreativeQuestions.map((question) => (
+                          <TableRow key={question.id}>
+                            <TableCell className="font-medium">{question.id}</TableCell>
+                            <TableCell className="max-w-md truncate">{question.statement}</TableCell>
+                            <TableCell>
+                              <Badge variant="secondary">{question.category}</Badge>
+                            </TableCell>
+                            <TableCell>
+                              {question.is_reverse ? (
+                                <Badge className="bg-orange-500 text-white">是</Badge>
+                              ) : (
+                                <Badge variant="outline">否</Badge>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+
+                  {/* 創意題目分頁控制 */}
+                  {!isLoading && !error && creativeQuestions.length > itemsPerPage && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4">
+                      <div className="text-sm text-muted-foreground text-center sm:text-left">
+                        顯示第 {startIndex + 1} - {Math.min(endIndex, creativeQuestions.length)} 筆，共 {creativeQuestions.length} 筆
+                      </div>
+                      
+                      {/* Desktop Pagination */}
+                      <div className="hidden sm:flex items-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handlePreviousPage}
+                          disabled={currentPage === 1}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                          上一頁
+                        </Button>
+                        
+                        <div className="flex items-center space-x-1">
+                          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                            <Button
+                              key={page}
+                              variant={currentPage === page ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => handlePageChange(page)}
+                              className="w-8 h-8 p-0"
+                            >
+                              {page}
+                            </Button>
+                          ))}
+                        </div>
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleNextPage}
+                          disabled={currentPage === totalPages}
+                        >
+                          下一頁
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+
+                      {/* Mobile Pagination */}
+                      <div className="flex sm:hidden items-center space-x-2 w-full justify-center">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handlePreviousPage}
+                          disabled={currentPage === 1}
+                          className="flex-1 max-w-[80px]"
+                        >
+                          <ChevronLeft className="h-4 w-4 mr-1" />
+                          上一頁
+                        </Button>
+                        
+                        <div className="flex items-center space-x-1 px-2">
+                          {(() => {
+                            const maxVisiblePages = 3
+                            const startPage = Math.max(1, currentPage - 1)
+                            const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
+                            const pages = []
+                            
+                            // 如果不在第一頁，顯示第一頁和省略號
+                            if (startPage > 1) {
+                              pages.push(
+                                <Button
+                                  key={1}
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handlePageChange(1)}
+                                  className="w-8 h-8 p-0"
+                                >
+                                  1
+                                </Button>
+                              )
+                              if (startPage > 2) {
+                                pages.push(
+                                  <span key="ellipsis1" className="text-muted-foreground px-1">
+                                    ...
+                                  </span>
+                                )
+                              }
+                            }
+                            
+                            // 顯示當前頁附近的頁碼
+                            for (let i = startPage; i <= endPage; i++) {
+                              pages.push(
+                                <Button
+                                  key={i}
+                                  variant={currentPage === i ? "default" : "outline"}
+                                  size="sm"
+                                  onClick={() => handlePageChange(i)}
+                                  className="w-8 h-8 p-0"
+                                >
+                                  {i}
+                                </Button>
+                              )
+                            }
+                            
+                            // 如果不在最後一頁，顯示省略號和最後一頁
+                            if (endPage < totalPages) {
+                              if (endPage < totalPages - 1) {
+                                pages.push(
+                                  <span key="ellipsis2" className="text-muted-foreground px-1">
+                                    ...
+                                  </span>
+                                )
+                              }
+                              pages.push(
+                                <Button
+                                  key={totalPages}
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handlePageChange(totalPages)}
+                                  className="w-8 h-8 p-0"
+                                >
+                                  {totalPages}
+                                </Button>
+                              )
+                            }
+                            
+                            return pages
+                          })()}
+                        </div>
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleNextPage}
+                          disabled={currentPage === totalPages}
+                          className="flex-1 max-w-[80px]"
+                        >
+                          下一頁
+                          <ChevronRight className="h-4 w-4 ml-1" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </TabsContent>
               </Tabs>
             </CardContent>

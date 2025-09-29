@@ -1,0 +1,19 @@
+import { NextResponse } from "next/server"
+import { getAllCreativeQuestions } from "@/lib/database/models/creative_question"
+
+export async function GET() {
+  try {
+    const questions = await getAllCreativeQuestions()
+    
+    return NextResponse.json({
+      success: true,
+      data: questions
+    })
+  } catch (error) {
+    console.error("獲取創意題目失敗:", error)
+    return NextResponse.json(
+      { success: false, message: "獲取創意題目失敗" },
+      { status: 500 }
+    )
+  }
+}
