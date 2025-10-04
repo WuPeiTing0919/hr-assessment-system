@@ -14,6 +14,17 @@ interface CombinedAnalysisProps {
   description: string
   logicBreakdown?: any
   creativityBreakdown?: any
+  // 個別測試結果的詳細資料
+  logicCorrectAnswers?: number
+  logicTotalQuestions?: number
+  logicLevel?: string
+  logicDescription?: string
+  logicSuggestion?: string
+  creativityTotalScore?: number
+  creativityMaxScore?: number
+  creativityLevel?: string
+  creativityDescription?: string
+  creativitySuggestion?: string
 }
 
 export function CombinedAnalysis({ 
@@ -24,7 +35,18 @@ export function CombinedAnalysis({
   level, 
   description,
   logicBreakdown,
-  creativityBreakdown
+  creativityBreakdown,
+  // 個別測試結果的詳細資料
+  logicCorrectAnswers,
+  logicTotalQuestions,
+  logicLevel,
+  logicDescription,
+  logicSuggestion,
+  creativityTotalScore,
+  creativityMaxScore,
+  creativityLevel,
+  creativityDescription,
+  creativitySuggestion
 }: CombinedAnalysisProps) {
   
   // 獲取等級顏色
@@ -111,6 +133,119 @@ export function CombinedAnalysis({
         </CardContent>
       </Card>
 
+      {/* 個別測試結果 */}
+      {(logicCorrectAnswers !== undefined || creativityTotalScore !== undefined) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* 邏輯思維測試 */}
+          {logicCorrectAnswers !== undefined && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Brain className="w-5 h-5 text-blue-600" />
+                  邏輯思維測試
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {/* 分數顯示 */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-muted-foreground">得分</span>
+                    <div className="flex items-center gap-3">
+                      <Progress value={logicScore} className="w-24 h-2" />
+                      <span className="text-2xl font-bold text-red-600">{logicScore}</span>
+                    </div>
+                  </div>
+
+                  {/* 統計數據 */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-muted/50 rounded-lg p-3 text-center">
+                      <div className="text-lg font-bold text-green-600">{logicCorrectAnswers}</div>
+                      <div className="text-xs text-muted-foreground">答對題數</div>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg p-3 text-center">
+                      <div className="text-lg font-bold text-blue-600">{logicTotalQuestions}</div>
+                      <div className="text-xs text-muted-foreground">總題數</div>
+                    </div>
+                  </div>
+
+                  {/* 等級和描述 */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+                      <span className="font-medium text-sm">{logicLevel}</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {logicDescription}
+                    </p>
+                    <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
+                      <Star className="w-4 h-4 text-yellow-500 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <span className="text-sm font-medium text-muted-foreground">建議：</span>
+                        <p className="text-sm text-muted-foreground mt-1">{logicSuggestion}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* 創意能力測試 */}
+          {creativityTotalScore !== undefined && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Lightbulb className="w-5 h-5 text-orange-600" />
+                  創意能力測試
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {/* 分數顯示 */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-muted-foreground">得分</span>
+                    <div className="flex items-center gap-3">
+                      <Progress value={creativityScore} className="w-24 h-2" />
+                      <span className="text-2xl font-bold text-orange-600">{creativityScore}</span>
+                    </div>
+                  </div>
+
+                  {/* 統計數據 */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-muted/50 rounded-lg p-3 text-center">
+                      <div className="text-lg font-bold text-green-600">{creativityTotalScore}</div>
+                      <div className="text-xs text-muted-foreground">原始得分</div>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg p-3 text-center">
+                      <div className="text-lg font-bold text-blue-600">{creativityMaxScore}</div>
+                      <div className="text-xs text-muted-foreground">滿分</div>
+                    </div>
+                  </div>
+
+                  {/* 等級和描述 */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+                      <span className="font-medium text-sm">{creativityLevel}</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {creativityDescription}
+                    </p>
+                    <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
+                      <Star className="w-4 h-4 text-yellow-500 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <span className="text-sm font-medium text-muted-foreground">建議：</span>
+                        <p className="text-sm text-muted-foreground mt-1">{creativitySuggestion}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
+
       {/* 能力分析 */}
       <Card>
         <CardHeader>
@@ -127,7 +262,7 @@ export function CombinedAnalysis({
                 <Brain className="w-6 h-6 text-blue-600" />
               </div>
               <h3 className="font-medium text-sm mb-2">邏輯思維</h3>
-              <div className="text-2xl font-bold text-red-600 mb-1">{logicScore}分</div>
+              <div className="text-3xl font-bold text-red-600 mb-1">{logicScore}</div>
               <div className={`text-xs ${logicStatus.color} mb-2`}>{logicStatus.text}</div>
               <Progress value={logicScore} className="h-2" />
             </div>
@@ -138,7 +273,7 @@ export function CombinedAnalysis({
                 <Lightbulb className="w-6 h-6 text-orange-600" />
               </div>
               <h3 className="font-medium text-sm mb-2">創意能力</h3>
-              <div className="text-2xl font-bold text-orange-600 mb-1">{creativityScore}分</div>
+              <div className="text-3xl font-bold text-orange-600 mb-1">{creativityScore}</div>
               <div className={`text-xs ${creativityStatus.color} mb-2`}>{creativityStatus.text}</div>
               <Progress value={creativityScore} className="h-2" />
             </div>
@@ -149,7 +284,7 @@ export function CombinedAnalysis({
                 <Target className="w-6 h-6 text-green-600" />
               </div>
               <h3 className="font-medium text-sm mb-2">能力平衡</h3>
-              <div className="text-2xl font-bold text-orange-600 mb-1">{balanceScore}分</div>
+              <div className="text-3xl font-bold text-orange-600 mb-1">{balanceScore}</div>
               <div className={`text-xs ${balanceStatus.color} mb-2`}>{balanceStatus.text}</div>
               <Progress value={balanceScore} className="h-2" />
             </div>

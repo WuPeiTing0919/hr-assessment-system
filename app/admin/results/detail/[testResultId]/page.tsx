@@ -55,6 +55,7 @@ interface Question {
   userAnswer?: string | number
   isCorrect?: boolean
   score?: number
+  category?: 'innovation' | 'imagination' | 'flexibility' | 'originality'
   created_at: string
 }
 
@@ -394,82 +395,94 @@ function AdminResultDetailContent() {
             </CardContent>
           </Card>
 
-          {/* Score Overview */}
-          <Card className="text-center">
-            <CardHeader>
-              <div
-                className={`w-24 h-24 ${scoreLevel.color} rounded-full flex items-center justify-center mx-auto mb-4`}
-              >
-                <span className="text-3xl font-bold text-white">{result.score}</span>
-              </div>
-              <CardTitle className="text-3xl mb-2">測試完成！</CardTitle>
-              <div className="flex items-center justify-center gap-2 mb-4">
-                <Badge variant="secondary" className="text-lg px-4 py-1">
-                  {scoreLevel.level}
-                </Badge>
-              </div>
-              <p className="text-lg text-muted-foreground mb-3">{scoreLevel.description}</p>
-              <div className="bg-muted/50 rounded-lg p-4 text-sm">
-                <p className="text-muted-foreground">
-                  <span className="font-medium">👉 建議：</span>
-                  {scoreLevel.suggestion}
-                </p>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                {result.type === 'creative' ? (
-                  <>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600 mb-1">{displayTotalScore}</div>
-                      <div className="text-xs text-muted-foreground">總得分</div>
+          {/* Logic Test Overview */}
+          {result.type === 'logic' && (
+            <Card className="text-center mb-6">
+              <CardHeader>
+                <div
+                  className={`w-24 h-24 ${scoreLevel.color} rounded-full flex items-center justify-center mx-auto mb-4`}
+                >
+                  <span className="text-3xl font-bold text-white">{result.score}</span>
+                </div>
+                <CardTitle className="text-3xl mb-2">邏輯測試完成！</CardTitle>
+                <div className="flex items-center justify-center gap-2 mb-4">
+                  <Badge variant="secondary" className="text-lg px-4 py-1">
+                    {scoreLevel.level}
+                  </Badge>
+                </div>
+                <p className="text-lg text-muted-foreground mb-3">{scoreLevel.description}</p>
+                <div className="bg-muted/50 rounded-lg p-4 text-sm">
+                  <p className="text-muted-foreground">
+                    <span className="font-medium">👉 建議：</span>
+                    {scoreLevel.suggestion}
+                  </p>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600 mb-1">{correctAnswers}</div>
+                    <div className="text-xs text-muted-foreground">答對題數</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-primary mb-1">{totalQuestions}</div>
+                    <div className="text-xs text-muted-foreground">總題數</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-accent mb-1">
+                      {totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0}%
                     </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-primary mb-1">{displayMaxScore}</div>
-                      <div className="text-xs text-muted-foreground">滿分</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-accent mb-1">
-                        {displayScorePercentage}%
-                      </div>
-                      <div className="text-xs text-muted-foreground">得分率</div>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600 mb-1">{correctAnswers}</div>
-                      <div className="text-xs text-muted-foreground">答對題數</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-primary mb-1">{totalQuestions}</div>
-                      <div className="text-xs text-muted-foreground">總題數</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-accent mb-1">
-                        {totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0}%
-                      </div>
-                      <div className="text-xs text-muted-foreground">正確率</div>
-                    </div>
-                  </>
-                )}
-              </div>
-              <Progress value={result.score} className="h-3 mb-4" />
-            </CardContent>
-          </Card>
+                    <div className="text-xs text-muted-foreground">正確率</div>
+                  </div>
+                </div>
+                <Progress value={result.score} className="h-3 mb-4" />
+              </CardContent>
+            </Card>
+          )}
 
-          {/* Combined Test Analysis */}
-          {result.type === 'combined' && result.details && (
-            <CombinedAnalysis 
-              overallScore={result.score}
-              logicScore={result.details.logicScore}
-              creativityScore={result.details.creativeScore}
-              balanceScore={result.details.abilityBalance}
-              level={getScoreLevel(result.score, result.type).level}
-              description={getScoreLevel(result.score, result.type).description}
-              logicBreakdown={result.details.breakdown}
-              creativityBreakdown={result.details.breakdown}
-            />
+          {/* Creative Test Overview */}
+          {result.type === 'creative' && (
+            <Card className="text-center mb-6">
+              <CardHeader>
+                <div
+                  className={`w-24 h-24 ${scoreLevel.color} rounded-full flex items-center justify-center mx-auto mb-4`}
+                >
+                  <span className="text-3xl font-bold text-white">{result.score}</span>
+                </div>
+                <CardTitle className="text-3xl mb-2">創意測試完成！</CardTitle>
+                <div className="flex items-center justify-center gap-2 mb-4">
+                  <Badge variant="secondary" className="text-lg px-4 py-1">
+                    {scoreLevel.level}
+                  </Badge>
+                </div>
+                <p className="text-lg text-muted-foreground mb-3">{scoreLevel.description}</p>
+                <div className="bg-muted/50 rounded-lg p-4 text-sm">
+                  <p className="text-muted-foreground">
+                    <span className="font-medium">👉 建議：</span>
+                    {scoreLevel.suggestion}
+                  </p>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600 mb-1">{displayTotalScore}</div>
+                    <div className="text-xs text-muted-foreground">總得分</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-primary mb-1">{displayMaxScore}</div>
+                    <div className="text-xs text-muted-foreground">滿分</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-accent mb-1">
+                      {displayScorePercentage}%
+                    </div>
+                    <div className="text-xs text-muted-foreground">得分率</div>
+                  </div>
+                </div>
+                <Progress value={result.score} className="h-3 mb-4" />
+              </CardContent>
+            </Card>
           )}
 
           {/* Creative Analysis for Creative Tests */}
@@ -480,6 +493,31 @@ function AdminResultDetailContent() {
               creativityLevel={scoreLevel}
               totalScore={displayTotalScore}
               maxScore={displayMaxScore}
+            />
+          )}
+
+          {/* Combined Test Analysis */}
+          {result.type === 'combined' && result.details && (
+            <CombinedAnalysis 
+              overallScore={result.score}
+              logicScore={result.details.logicScore || 0}
+              creativityScore={result.details.creativeScore || 0}
+              balanceScore={result.details.abilityBalance || 0}
+              level={getScoreLevel(result.score, result.type).level}
+              description={getScoreLevel(result.score, result.type).description}
+              logicBreakdown={result.details.breakdown}
+              creativityBreakdown={result.details.breakdown}
+              // 個別測試結果的詳細資料
+              logicCorrectAnswers={logicQuestions.filter(q => q.isCorrect).length}
+              logicTotalQuestions={logicQuestions.length}
+              logicLevel={getScoreLevel(result.details.logicScore || 0, 'logic').level}
+              logicDescription={getScoreLevel(result.details.logicScore || 0, 'logic').description}
+              logicSuggestion={getScoreLevel(result.details.logicScore || 0, 'logic').suggestion}
+              creativityTotalScore={creativeQuestions.reduce((sum, q) => sum + (q.score || 0), 0)}
+              creativityMaxScore={creativeQuestions.length * 5}
+              creativityLevel={getScoreLevel(result.details.creativeScore || 0, 'creative').level}
+              creativityDescription={getScoreLevel(result.details.creativeScore || 0, 'creative').description}
+              creativitySuggestion={getScoreLevel(result.details.creativeScore || 0, 'creative').suggestion}
             />
           )}
 
@@ -571,7 +609,7 @@ function AdminResultDetailContent() {
                       </h3>
                       <div className="space-y-4">
                         {creativeQuestions.map((question, index) => {
-                          const dimensionInfo = getDimensionInfo(question.category)
+                          const dimensionInfo = getDimensionInfo(question.category || 'innovation')
                           return (
                             <div key={question.id} className={`border rounded-lg p-3 sm:p-4 ${dimensionInfo.borderColor} bg-opacity-30`} style={{ backgroundColor: `${dimensionInfo.color.replace('bg-', '')}10` }}>
                               <div className="flex items-start justify-between mb-2 sm:mb-3">
