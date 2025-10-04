@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Brain, Lightbulb, BarChart3, Users, Settings, Menu, ChevronDown, Link as LinkIcon } from "lucide-react"
+import { Brain, Lightbulb, BarChart3, Users, Settings, Menu, ChevronDown, Link as LinkIcon, CheckCircle } from "lucide-react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import Link from "next/link"
 import Image from "next/image"
@@ -15,12 +15,59 @@ export default function HomePage() {
   const { user, logout } = useAuth()
   const router = useRouter()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [testCompletionStatus, setTestCompletionStatus] = useState({
+    logic: false,
+    creative: false,
+    combined: false
+  })
+  const [isLoadingTests, setIsLoadingTests] = useState(true)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   const handleLogout = () => {
     logout()
     router.push("/")
   }
+
+  // 檢查用戶測驗完成狀態
+  const checkTestCompletionStatus = async () => {
+    if (!user) return
+
+    try {
+      setIsLoadingTests(true)
+      
+      // 檢查邏輯測試
+      const logicResponse = await fetch(`/api/test-results/logic?userId=${user.id}`)
+      const logicData = await logicResponse.json()
+      const hasLogicTest = logicData.success && logicData.data && logicData.data.length > 0
+
+      // 檢查創意測試
+      const creativeResponse = await fetch(`/api/test-results/creative?userId=${user.id}`)
+      const creativeData = await creativeResponse.json()
+      const hasCreativeTest = creativeData.success && creativeData.data && creativeData.data.length > 0
+
+      // 檢查綜合測試
+      const combinedResponse = await fetch(`/api/test-results/combined?userId=${user.id}`)
+      const combinedData = await combinedResponse.json()
+      const hasCombinedTest = combinedData.success && combinedData.data && combinedData.data.length > 0
+
+      setTestCompletionStatus({
+        logic: hasLogicTest,
+        creative: hasCreativeTest,
+        combined: hasCombinedTest
+      })
+    } catch (error) {
+      console.error('Error checking test completion status:', error)
+    } finally {
+      setIsLoadingTests(false)
+    }
+  }
+
+  // 檢查測驗完成狀態
+  useEffect(() => {
+    if (user) {
+      checkTestCompletionStatus()
+    }
+  }, [user])
 
   // 點擊外部關閉下拉選單
   useEffect(() => {
@@ -334,9 +381,23 @@ export default function HomePage() {
                     <CardDescription>評估邏輯推理能力</CardDescription>
                   </CardHeader>
                   <CardContent className="text-center">
-                    <Button asChild className="w-full">
-                      <Link href="/tests/logic">開始測試</Link>
-                    </Button>
+                    {isLoadingTests ? (
+                      <Button disabled className="w-full">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                        載入中...
+                      </Button>
+                    ) : testCompletionStatus.logic ? (
+                      <Button asChild variant="outline" className="w-full border-green-500 text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-600">
+                        <Link href="/tests/logic">
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          已完成測驗
+                        </Link>
+                      </Button>
+                    ) : (
+                      <Button asChild className="w-full">
+                        <Link href="/tests/logic">開始測試</Link>
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -350,13 +411,27 @@ export default function HomePage() {
                     <CardDescription>評估創新思維能力</CardDescription>
                   </CardHeader>
                   <CardContent className="text-center">
-                    <Button
-                      asChild
-                      variant="outline"
-                      className="w-full border-accent text-accent hover:bg-accent hover:text-accent-foreground bg-transparent"
-                    >
-                      <Link href="/tests/creative">開始測試</Link>
-                    </Button>
+                    {isLoadingTests ? (
+                      <Button disabled className="w-full">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                        載入中...
+                      </Button>
+                    ) : testCompletionStatus.creative ? (
+                      <Button asChild variant="outline" className="w-full border-green-500 text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-600">
+                        <Link href="/tests/creative">
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          已完成測驗
+                        </Link>
+                      </Button>
+                    ) : (
+                      <Button
+                        asChild
+                        variant="outline"
+                        className="w-full border-accent text-accent hover:bg-accent hover:text-accent-foreground bg-transparent"
+                      >
+                        <Link href="/tests/creative">開始測試</Link>
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -370,9 +445,23 @@ export default function HomePage() {
                     <CardDescription>完整能力評估</CardDescription>
                   </CardHeader>
                   <CardContent className="text-center">
-                    <Button asChild size="lg" className="w-full">
-                      <Link href="/tests/combined">開始測試</Link>
-                    </Button>
+                    {isLoadingTests ? (
+                      <Button disabled size="lg" className="w-full">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                        載入中...
+                      </Button>
+                    ) : testCompletionStatus.combined ? (
+                      <Button asChild variant="outline" size="lg" className="w-full border-green-500 text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-600">
+                        <Link href="/tests/combined">
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          已完成測驗
+                        </Link>
+                      </Button>
+                    ) : (
+                      <Button asChild size="lg" className="w-full">
+                        <Link href="/tests/combined">開始測試</Link>
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
               </div>
