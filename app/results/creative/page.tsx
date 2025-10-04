@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Lightbulb, Home, RotateCcw, TrendingUp, Printer } from "lucide-react"
+import { Lightbulb, Home, RotateCcw, TrendingUp, Printer, Share2 } from "lucide-react"
 import Link from "next/link"
 import { creativeQuestions } from "@/lib/questions/creative-questions"
 import { useAuth } from "@/lib/hooks/use-auth"
@@ -257,7 +257,7 @@ export default function CreativeResultsPage() {
       {/* Header */}
       <header className="border-b bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
                 <Lightbulb className="w-6 h-6 text-accent-foreground" />
@@ -269,15 +269,37 @@ export default function CreativeResultsPage() {
                 </p>
               </div>
             </div>
-            <Button 
-              onClick={() => window.print()} 
-              variant="outline" 
-              size="sm"
-              className="print:hidden"
-            >
-              <Printer className="w-4 h-4 mr-2" />
-              列印結果
-            </Button>
+            <div className="flex justify-end gap-2">
+              <Button 
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({
+                      title: '創意能力測試結果',
+                      text: '查看我的創意能力測試結果',
+                      url: window.location.href
+                    })
+                  } else {
+                    navigator.clipboard.writeText(window.location.href)
+                    alert('連結已複製到剪貼簿')
+                  }
+                }}
+                variant="outline" 
+                size="sm"
+                className="print:hidden"
+              >
+                <Share2 className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">分享結果</span>
+              </Button>
+              <Button 
+                onClick={() => window.print()} 
+                variant="outline" 
+                size="sm"
+                className="print:hidden"
+              >
+                <Printer className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">列印結果</span>
+              </Button>
+            </div>
           </div>
         </div>
       </header>
