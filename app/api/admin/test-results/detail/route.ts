@@ -127,7 +127,91 @@ export async function GET(request: NextRequest) {
 
         // 獲取詳細答案
         try {
-          if (testType === "logic") {
+          if (testType === "creative") {
+            console.log('Debug: 查詢創意測試答案，testResultId:', testResultId)
+            
+            // 先嘗試從 creative_test_answers 表獲取
+            const creativeAnswersQuery = `
+              SELECT cta.*, cq.statement, cq.is_reverse, cq.category
+              FROM creative_test_answers cta
+              LEFT JOIN creative_questions cq ON cta.question_id = cq.id
+              WHERE cta.test_result_id = ?
+              ORDER BY cta.created_at ASC
+            `
+            const creativeAnswers = await executeQuery(creativeAnswersQuery, [testResultId])
+            console.log('Debug: 創意測試答案數量:', creativeAnswers.length)
+            
+            if (creativeAnswers.length > 0) {
+              // 處理創意題答案
+              for (const answer of creativeAnswers) {
+                if (answer.statement) {
+                  questions.push({
+                    id: answer.question_id,
+                    statement: answer.statement,
+                    is_reverse: answer.is_reverse,
+                    category: answer.category,
+                    type: 'creative',
+                    userAnswer: answer.user_answer,
+                    score: answer.score,
+                    isReverse: answer.is_reverse
+                  })
+                }
+              }
+
+              // 計算維度分數
+              const dimensionScores = {
+                innovation: { total: 0, count: 0 },
+                imagination: { total: 0, count: 0 },
+                flexibility: { total: 0, count: 0 },
+                originality: { total: 0, count: 0 }
+              }
+
+              creativeAnswers.forEach((answer: any) => {
+                if (answer.category && dimensionScores[answer.category as keyof typeof dimensionScores]) {
+                  dimensionScores[answer.category as keyof typeof dimensionScores].total += answer.score
+                  dimensionScores[answer.category as keyof typeof dimensionScores].count += 1
+                }
+              })
+
+              // 計算百分比分數
+              const resultDimensionScores = {
+                innovation: { percentage: 0, rawScore: 0, maxScore: 0 },
+                imagination: { percentage: 0, rawScore: 0, maxScore: 0 },
+                flexibility: { percentage: 0, rawScore: 0, maxScore: 0 },
+                originality: { percentage: 0, rawScore: 0, maxScore: 0 }
+              }
+              
+              Object.keys(dimensionScores).forEach(category => {
+                const { total, count } = dimensionScores[category as keyof typeof dimensionScores]
+                const maxScore = count * 5
+                const percentage = count > 0 ? Math.round((total / maxScore) * 100) : 0
+                
+                resultDimensionScores[category as keyof typeof resultDimensionScores] = {
+                  percentage: percentage,
+                  rawScore: total,
+                  maxScore: maxScore
+                }
+              })
+
+              // 將維度分數添加到結果中
+              result.dimensionScores = resultDimensionScores
+            } else {
+              // 如果沒有找到答案，只顯示題目不顯示假答案
+              console.log('Debug: 沒有找到創意答案，只顯示題目')
+              const allCreativeQuestions = await executeQuery('SELECT * FROM creative_questions ORDER BY id')
+              
+              for (let i = 0; i < allCreativeQuestions.length; i++) {
+                const question = allCreativeQuestions[i]
+                questions.push({
+                  ...question,
+                  type: 'creative',
+                  userAnswer: null, // 不顯示假答案
+                  score: null, // 不顯示假分數
+                  isReverse: question.is_reverse
+                })
+              }
+            }
+          } else if (testType === "logic") {
             console.log('Debug: 查詢邏輯測試答案，testResultId:', testResultId)
             
             
@@ -177,51 +261,6 @@ export async function GET(request: NextRequest) {
                   userAnswer: null, // 不顯示假答案
                   isCorrect: null, // 不顯示假結果
                   correctAnswer: question.correct_answer
-                })
-              }
-            }
-          } else if (testType === "creative") {
-            console.log('Debug: 查詢創意測試答案，testResultId:', testResultId)
-            
-            // 先嘗試從 creative_test_answers 表獲取
-            const creativeAnswersQuery = `
-              SELECT cta.*, cq.statement, cq.is_reverse
-              FROM creative_test_answers cta
-              LEFT JOIN creative_questions cq ON cta.question_id = cq.id
-              WHERE cta.test_result_id = ?
-              ORDER BY cta.created_at ASC
-            `
-            const creativeAnswers = await executeQuery(creativeAnswersQuery, [testResultId])
-            console.log('Debug: 創意測試答案數量:', creativeAnswers.length)
-            
-            if (creativeAnswers.length > 0) {
-              // 處理創意題答案
-              for (const answer of creativeAnswers) {
-                if (answer.statement) {
-                  questions.push({
-                    id: answer.question_id,
-                    statement: answer.statement,
-                    is_reverse: answer.is_reverse,
-                    type: 'creative',
-                    userAnswer: answer.user_answer,
-                    score: answer.score,
-                    isReverse: answer.is_reverse
-                  })
-                }
-              }
-            } else {
-              // 如果沒有找到答案，只顯示題目不顯示假答案
-              console.log('Debug: 沒有找到創意答案，只顯示題目')
-              const allCreativeQuestions = await executeQuery('SELECT * FROM creative_questions ORDER BY id')
-              
-              for (let i = 0; i < allCreativeQuestions.length; i++) {
-                const question = allCreativeQuestions[i]
-                questions.push({
-                  ...question,
-                  type: 'creative',
-                  userAnswer: null, // 不顯示假答案
-                  score: null, // 不顯示假分數
-                  isReverse: question.is_reverse
                 })
               }
             }

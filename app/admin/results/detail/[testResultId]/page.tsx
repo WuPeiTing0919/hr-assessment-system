@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { CheckCircle, XCircle, Brain, Lightbulb, BarChart3, ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
+import { CreativeAnalysis } from "@/components/creative-analysis"
 
 interface User {
   id: string
@@ -29,6 +30,12 @@ interface TestResult {
     creativeScore?: number
     abilityBalance?: number
     breakdown?: any
+  }
+  dimensionScores?: {
+    innovation: { percentage: number, rawScore: number, maxScore: number }
+    imagination: { percentage: number, rawScore: number, maxScore: number }
+    flexibility: { percentage: number, rawScore: number, maxScore: number }
+    originality: { percentage: number, rawScore: number, maxScore: number }
   }
 }
 
@@ -172,6 +179,46 @@ function AdminResultDetailContent() {
     }
   }
 
+  const getDimensionInfo = (category: string) => {
+    switch (category) {
+      case "innovation":
+        return {
+          name: "創新能力",
+          color: "bg-blue-500",
+          textColor: "text-blue-600",
+          borderColor: "border-blue-200"
+        }
+      case "imagination":
+        return {
+          name: "想像力",
+          color: "bg-purple-500",
+          textColor: "text-purple-600",
+          borderColor: "border-purple-200"
+        }
+      case "flexibility":
+        return {
+          name: "靈活性",
+          color: "bg-green-500",
+          textColor: "text-green-600",
+          borderColor: "border-green-200"
+        }
+      case "originality":
+        return {
+          name: "原創性",
+          color: "bg-orange-500",
+          textColor: "text-orange-600",
+          borderColor: "border-orange-200"
+        }
+      default:
+        return {
+          name: "未知維度",
+          color: "bg-gray-500",
+          textColor: "text-gray-600",
+          borderColor: "border-gray-200"
+        }
+    }
+  }
+
   const getScoreLevel = (score: number, type: string) => {
     if (type === "logic") {
       if (score === 100) return { 
@@ -211,29 +258,29 @@ function AdminResultDetailContent() {
         description: "你的創意如泉水般源源不絕，總能提出令人驚豔的解決方案！",
         suggestion: "繼續保持這種創意精神，並嘗試將創意轉化為實際行動。"
       }
-      if (score >= 80) return { 
-        level: "創意高手", 
-        color: "bg-green-500", 
-        description: "創意思維活躍，能夠從不同角度思考問題，提出新穎的見解。",
-        suggestion: "多接觸不同領域的知識，豐富你的創意素材庫。"
-      }
-      if (score >= 60) return { 
-        level: "創意探索者", 
+      if (score >= 75) return { 
+        level: "創意引領者", 
         color: "bg-blue-500", 
-        description: "有一定的創意思維，能夠在既有框架內提出改進建議。",
-        suggestion: "嘗試跳出舒適圈，挑戰更多創意性的任務。"
+        description: "你是靈感的推動者！總是能在團體中主動拋出新想法，激發別人跟進。",
+        suggestion: "持續累積學習，讓你的靈感不僅是點子，而能帶動真正的行動。"
       }
-      if (score >= 40) return { 
-        level: "創意學習者", 
+      if (score >= 55) return { 
+        level: "創意實踐者", 
+        color: "bg-green-500", 
+        description: "靈感已經隨手可得，在團體中也常被認為是「有創意的人」。",
+        suggestion: "再給自己一點勇氣，不要害怕挑戰慣例，你的創意將更有力量。"
+      }
+      if (score >= 35) return { 
+        level: "創意開拓者", 
         color: "bg-yellow-500", 
-        description: "正在學習如何發揮創意，需要更多練習和啟發。",
-        suggestion: "多觀察身邊的事物，培養對細節的敏感度。"
+        description: "你其實有自己的想法，但有時習慣跟隨大多數人的步伐。",
+        suggestion: "試著勇敢說出腦中天馬行空的念頭，你會發現，這些點子或許就是團隊需要的突破口。"
       }
       return { 
-        level: "創意新手", 
+        level: "創意萌芽者", 
         color: "bg-red-500", 
-        description: "創意思維還需要培養，建議多接觸創意相關的活動。",
-        suggestion: "從簡單的創意練習開始，逐步提升創意思維能力。"
+        description: "還在創意旅程的起點。雖然暫時表現平淡，但這正是無限潛力的開端！",
+        suggestion: "觀察生活小事，或閱讀不同領域的內容，讓靈感一點一滴積累。"
       }
     } else {
       // combined
@@ -279,6 +326,16 @@ function AdminResultDetailContent() {
   const creativeQuestions = questions.filter(q => q.type === 'creative')
   const correctAnswers = logicQuestions.filter(q => q.isCorrect).length
   const totalQuestions = questions.length
+
+  // 計算創意測試的統計數據
+  const creativeTotalScore = creativeQuestions.reduce((sum, q) => sum + (q.score || 0), 0)
+  const creativeMaxScore = creativeQuestions.length * 5
+  const creativeScorePercentage = creativeQuestions.length > 0 ? Math.round((creativeTotalScore / creativeMaxScore) * 100) : 0
+  
+  // 如果沒有從答案中獲得分數，使用結果中的分數
+  const displayTotalScore = creativeTotalScore > 0 ? creativeTotalScore : result.score
+  const displayMaxScore = creativeMaxScore > 0 ? creativeMaxScore : 100
+  const displayScorePercentage = creativeScorePercentage > 0 ? creativeScorePercentage : result.score
 
   return (
     <div className="min-h-screen bg-background">
@@ -360,20 +417,41 @@ function AdminResultDetailContent() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600 mb-1">{correctAnswers}</div>
-                  <div className="text-xs text-muted-foreground">答對題數</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary mb-1">{totalQuestions}</div>
-                  <div className="text-xs text-muted-foreground">總題數</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-accent mb-1">
-                    {totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0}%
-                  </div>
-                  <div className="text-xs text-muted-foreground">正確率</div>
-                </div>
+                {result.type === 'creative' ? (
+                  <>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600 mb-1">{displayTotalScore}</div>
+                      <div className="text-xs text-muted-foreground">總得分</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-primary mb-1">{displayMaxScore}</div>
+                      <div className="text-xs text-muted-foreground">滿分</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-accent mb-1">
+                        {displayScorePercentage}%
+                      </div>
+                      <div className="text-xs text-muted-foreground">得分率</div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600 mb-1">{correctAnswers}</div>
+                      <div className="text-xs text-muted-foreground">答對題數</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-primary mb-1">{totalQuestions}</div>
+                      <div className="text-xs text-muted-foreground">總題數</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-accent mb-1">
+                        {totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0}%
+                      </div>
+                      <div className="text-xs text-muted-foreground">正確率</div>
+                    </div>
+                  </>
+                )}
               </div>
               <Progress value={result.score} className="h-3 mb-4" />
             </CardContent>
@@ -402,6 +480,17 @@ function AdminResultDetailContent() {
                 </div>
               </CardContent>
             </Card>
+          )}
+
+          {/* Creative Analysis for Creative Tests */}
+          {result.type === 'creative' && result.dimensionScores && (
+            <CreativeAnalysis 
+              score={result.score}
+              dimensionScores={result.dimensionScores}
+              creativityLevel={scoreLevel}
+              totalScore={displayTotalScore}
+              maxScore={displayMaxScore}
+            />
           )}
 
           {/* Detailed Results */}
@@ -491,34 +580,42 @@ function AdminResultDetailContent() {
                         創意能力題目
                       </h3>
                       <div className="space-y-4">
-                        {creativeQuestions.map((question, index) => (
-                          <div key={question.id} className="border rounded-lg p-3 sm:p-4 bg-green-50/30">
-                            <div className="flex items-start justify-between mb-2 sm:mb-3">
-                              <h4 className="font-medium text-sm sm:text-base">第 {index + 1} 題</h4>
-                              <Badge variant="outline" className="text-green-600 border-green-600 text-xs">
-                                {question.score} 分
-                              </Badge>
-                            </div>
-                            
-                            <div className="space-y-2 sm:space-y-3">
-                              <div>
-                                <label className="text-sm font-medium text-muted-foreground">題目內容</label>
-                                <p className="text-xs sm:text-sm mt-1 break-words">{question.statement}</p>
+                        {creativeQuestions.map((question, index) => {
+                          const dimensionInfo = getDimensionInfo(question.category)
+                          return (
+                            <div key={question.id} className={`border rounded-lg p-3 sm:p-4 ${dimensionInfo.borderColor} bg-opacity-30`} style={{ backgroundColor: `${dimensionInfo.color.replace('bg-', '')}10` }}>
+                              <div className="flex items-start justify-between mb-2 sm:mb-3">
+                                <div className="flex items-center gap-2">
+                                  <h4 className="font-medium text-sm sm:text-base">第 {index + 1} 題</h4>
+                                  <Badge variant="outline" className={`${dimensionInfo.textColor} ${dimensionInfo.borderColor} text-xs`}>
+                                    {dimensionInfo.name}
+                                  </Badge>
+                                </div>
+                                <Badge variant="outline" className="text-green-600 border-green-600 text-xs">
+                                  {question.score} 分
+                                </Badge>
                               </div>
+                              
+                              <div className="space-y-2 sm:space-y-3">
+                                <div>
+                                  <label className="text-sm font-medium text-muted-foreground">題目內容</label>
+                                  <p className="text-xs sm:text-sm mt-1 break-words">{question.statement}</p>
+                                </div>
 
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                                <div>
-                                  <label className="text-sm font-medium text-muted-foreground">用戶答案</label>
-                                  <p className="text-xs sm:text-sm mt-1">{question.userAnswer}</p>
-                                </div>
-                                <div>
-                                  <label className="text-sm font-medium text-muted-foreground">得分</label>
-                                  <p className="text-xs sm:text-sm mt-1 font-bold">{question.score} 分</p>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                  <div>
+                                    <label className="text-sm font-medium text-muted-foreground">用戶答案</label>
+                                    <p className="text-xs sm:text-sm mt-1">{question.userAnswer}</p>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-medium text-muted-foreground">得分</label>
+                                    <p className="text-xs sm:text-sm mt-1 font-bold">{question.score} 分</p>
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          )
+                        })}
                       </div>
                     </div>
                   )}
