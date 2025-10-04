@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress"
 import { CheckCircle, XCircle, Brain, Lightbulb, BarChart3, ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { CreativeAnalysis } from "@/components/creative-analysis"
+import { CombinedAnalysis } from "@/components/combined-analysis"
 
 interface User {
   id: string
@@ -286,32 +287,32 @@ function AdminResultDetailContent() {
       // combined
       if (score >= 90) return { 
         level: "全能高手", 
-        color: "bg-purple-600", 
+        color: "bg-gradient-to-r from-purple-500 to-blue-500", 
         description: "邏輯與創意完美結合，是團隊中的全能型人才！",
         suggestion: "繼續保持這種平衡，並嘗試帶領團隊解決複雜問題。"
       }
       if (score >= 80) return { 
         level: "綜合專家", 
-        color: "bg-green-500", 
+        color: "bg-gradient-to-r from-blue-500 to-green-500", 
         description: "邏輯思維和創意能力都很出色，能夠勝任各種挑戰。",
         suggestion: "繼續精進兩種能力，成為更全面的專業人才。"
       }
-      if (score >= 60) return { 
+      if (score >= 70) return { 
         level: "平衡發展者", 
-        color: "bg-blue-500", 
+        color: "bg-gradient-to-r from-green-500 to-yellow-500", 
         description: "邏輯和創意能力都有一定水準，正在朝全面發展邁進。",
         suggestion: "針對較弱的能力進行重點提升，達到更好的平衡。"
       }
-      if (score >= 40) return { 
+      if (score >= 50) return { 
         level: "潛力新星", 
-        color: "bg-yellow-500", 
+        color: "bg-gradient-to-r from-yellow-500 to-orange-500", 
         description: "有發展潛力，需要更多練習來提升綜合能力。",
         suggestion: "制定學習計劃，系統性地提升邏輯和創意能力。"
       }
       return { 
-        level: "成長中", 
-        color: "bg-red-500", 
-        description: "正在學習階段，需要更多時間和練習來提升能力。",
+        level: "待提升", 
+        color: "bg-gradient-to-r from-orange-500 to-red-500", 
+        description: "綜合能力有待提升，建議系統性訓練邏輯思維和創意能力。",
         suggestion: "從基礎開始，逐步建立邏輯思維和創意思維。"
       }
     }
@@ -457,29 +458,18 @@ function AdminResultDetailContent() {
             </CardContent>
           </Card>
 
-          {/* Combined Test Details */}
+          {/* Combined Test Analysis */}
           {result.type === 'combined' && result.details && (
-            <Card>
-              <CardHeader>
-                <CardTitle>綜合能力分析</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <h4 className="font-medium text-blue-800">邏輯思維</h4>
-                    <p className="text-2xl font-bold text-blue-600">{result.details.logicScore}</p>
-                  </div>
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <h4 className="font-medium text-green-800">創意能力</h4>
-                    <p className="text-2xl font-bold text-green-600">{result.details.creativeScore}</p>
-                  </div>
-                  <div className="text-center p-4 bg-purple-50 rounded-lg">
-                    <h4 className="font-medium text-purple-800">能力平衡</h4>
-                    <p className="text-2xl font-bold text-purple-600">{result.details.abilityBalance}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <CombinedAnalysis 
+              overallScore={result.score}
+              logicScore={result.details.logicScore}
+              creativityScore={result.details.creativeScore}
+              balanceScore={result.details.abilityBalance}
+              level={getScoreLevel(result.score, result.type).level}
+              description={getScoreLevel(result.score, result.type).description}
+              logicBreakdown={result.details.breakdown}
+              creativityBreakdown={result.details.breakdown}
+            />
           )}
 
           {/* Creative Analysis for Creative Tests */}
