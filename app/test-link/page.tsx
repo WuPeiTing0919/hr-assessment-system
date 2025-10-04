@@ -207,12 +207,6 @@ export default function TestLinkPage() {
               )}
             </Button>
           </form>
-
-          <div className="mt-6 p-3 bg-muted/50 rounded-lg">
-            <p className="text-xs text-muted-foreground text-center">
-              系統將自動為您創建帳號，預設密碼為：<strong>Aa123456</strong>
-            </p>
-          </div>
         </CardContent>
       </Card>
     </div>

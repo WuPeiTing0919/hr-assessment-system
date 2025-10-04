@@ -44,11 +44,8 @@ export default function HomePage() {
             <span className="text-xl font-bold">HR 評估系統</span>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/login" className="text-muted-foreground hover:text-foreground transition-colors">
-              登入
-            </Link>
             <Button asChild size="sm">
-              <Link href="/register">註冊</Link>
+              <Link href="/login">登入</Link>
             </Button>
           </div>
         </div>

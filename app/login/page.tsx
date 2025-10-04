@@ -104,23 +104,6 @@ export default function LoginPage() {
                 {isLoading ? "登入中..." : "登入"}
               </Button>
             </form>
-
-            <div className="mt-6 text-center">
-              <p className="text-sm text-muted-foreground">
-                還沒有帳戶？{" "}
-                <Link href="/register" className="text-primary hover:underline">
-                  立即註冊
-                </Link>
-              </p>
-            </div>
-
-            <div className="mt-4 p-4 bg-muted/50 rounded-lg">
-              <p className="text-sm font-medium mb-2">測試帳戶：</p>
-              <div className="text-xs text-muted-foreground space-y-1">
-                <p>管理者：admin@company.com / admin123</p>
-                <p>員工：user@company.com / user123</p>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>
