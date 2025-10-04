@@ -127,193 +127,39 @@ export default function LogicResultsPage() {
   const scoreLevel = getScoreLevel(results.score)
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                <Brain className="w-6 h-6 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-foreground">邏輯思維測試結果</h1>
-                <p className="text-sm text-muted-foreground">
-                  完成時間：{new Date(results.completedAt).toLocaleString("zh-TW")}
-                </p>
-              </div>
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button 
-                onClick={() => {
-                  if (navigator.share) {
-                    navigator.share({
-                      title: '邏輯思維測試結果',
-                      text: '查看我的邏輯思維測試結果',
-                      url: window.location.href
-                    })
-                  } else {
-                    navigator.clipboard.writeText(window.location.href)
-                    alert('連結已複製到剪貼簿')
-                  }
-                }}
-                variant="outline" 
-                size="sm"
-                className="print:hidden"
-              >
-                <Share2 className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">分享結果</span>
-              </Button>
-              <Button 
-                onClick={() => window.print()} 
-                variant="outline" 
-                size="sm"
-                className="print:hidden"
-              >
-                <Printer className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">列印結果</span>
-              </Button>
-            </div>
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <Card className="w-full max-w-md">
+        <CardContent className="text-center py-12">
+          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="w-10 h-10 text-green-600" />
           </div>
-        </div>
-      </header>
-
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto space-y-8">
-          {/* Score Overview */}
-          <Card className="text-center">
-            <CardHeader>
-              <div
-                className={`w-24 h-24 ${scoreLevel.color} rounded-full flex items-center justify-center mx-auto mb-4`}
-              >
-                <span className="text-3xl font-bold text-white">{results.score}</span>
-              </div>
-              <CardTitle className="text-3xl mb-2">測試完成！</CardTitle>
-              <div className="flex items-center justify-center gap-2 mb-4">
-                <Badge variant="secondary" className="text-lg px-4 py-1">
-                  {scoreLevel.level}
-                </Badge>
-              </div>
-              <p className="text-lg text-muted-foreground mb-3">{scoreLevel.description}</p>
-              <div className="bg-muted/50 rounded-lg p-4 text-sm">
-                <p className="text-muted-foreground">
-                  <span className="font-medium">👉 建議：</span>
-                  {scoreLevel.suggestion}
-                </p>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600 mb-1">{results.correctAnswers}</div>
-                  <div className="text-xs text-muted-foreground">答對題數</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary mb-1">{results.totalQuestions}</div>
-                  <div className="text-xs text-muted-foreground">總題數</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-accent mb-1">
-                    {Math.round((results.correctAnswers / results.totalQuestions) * 100)}%
-                  </div>
-                  <div className="text-xs text-muted-foreground">正確率</div>
-                </div>
-              </div>
-              <Progress value={results.score} className="h-3 mb-4" />
-            </CardContent>
-          </Card>
-
-          {/* Detailed Results */}
-          <Card>
-            <CardHeader>
-              <CardTitle>詳細結果</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                {questions.map((question, index) => {
-                  const userAnswer = results.answers[index]
-                  const isCorrect = userAnswer === question.correct_answer
-                  
-                  // 根據選項字母獲取對應的選項文字
-                  const getOptionText = (option: string) => {
-                    switch (option) {
-                      case 'A': return question.option_a
-                      case 'B': return question.option_b
-                      case 'C': return question.option_c
-                      case 'D': return question.option_d
-                      case 'E': return question.option_e
-                      default: return "未作答"
-                    }
-                  }
-
-                  const correctOptionText = getOptionText(question.correct_answer)
-                  const userOptionText = userAnswer ? getOptionText(userAnswer) : "未作答"
-
-                  return (
-                    <div key={question.id} className="border rounded-lg p-3 sm:p-4">
-                      <div className="flex items-start gap-3 mb-3">
-                        <div className="flex-shrink-0 mt-1">
-                          {isCorrect ? (
-                            <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
-                          ) : (
-                            <XCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium mb-2 text-sm sm:text-base text-balance">
-                            第{index + 1}題：{question.question}
-                          </h3>
-                          <div className="space-y-2 text-xs sm:text-sm">
-                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                              <span className="text-muted-foreground text-xs">你的答案：</span>
-                              <Badge variant={isCorrect ? "default" : "destructive"} className="text-xs w-fit">
-                                {userAnswer ? `${userAnswer}. ${userOptionText}` : "未作答"}
-                              </Badge>
-                            </div>
-                            {!isCorrect && (
-                              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                                <span className="text-muted-foreground text-xs">正確答案：</span>
-                                <Badge variant="outline" className="border-green-500 text-green-700 text-xs w-fit">
-                                  {question.correct_answer}. {correctOptionText}
-                                </Badge>
-                              </div>
-                            )}
-                            {question.explanation && (
-                              <div className="mt-2 p-2 sm:p-3 bg-muted/50 rounded text-xs sm:text-sm">
-                                <strong>解析：</strong>
-                                {question.explanation}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Actions */}
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-            <Button asChild size="lg" className="w-full sm:w-auto">
-              <Link href="/">
+          <h1 className="text-2xl font-bold text-foreground mb-4">邏輯思維測試完成！</h1>
+          <p className="text-lg text-muted-foreground mb-6">
+            感謝您完成邏輯思維測試，您的答案已成功提交。
+          </p>
+          <p className="text-sm text-muted-foreground mb-8">
+            完成時間：{new Date(results.completedAt).toLocaleString("zh-TW")}
+          </p>
+          <div className="space-y-3">
+            <Button asChild size="lg" className="w-full">
+              <Link href="/home">
                 <Home className="w-4 h-4 mr-2" />
-                <span>返回首頁</span>
+                返回首頁
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
-              <Link href="/tests/logic">
-                <RotateCcw className="w-4 h-4 mr-2" />
-                重新測試
+            <Button asChild variant="outline" size="lg" className="w-full">
+              <Link href="/tests/creative">
+                開始創意測試
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
-              <Link href="/tests/creative">開始創意測試</Link>
+            <Button asChild variant="outline" size="lg" className="w-full">
+              <Link href="/tests/combined">
+                開始綜合測試
+              </Link>
             </Button>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
