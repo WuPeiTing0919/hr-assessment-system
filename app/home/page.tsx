@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Brain, Lightbulb, BarChart3, Users, Settings, Menu, ChevronDown } from "lucide-react"
+import { Brain, Lightbulb, BarChart3, Users, Settings, Menu, ChevronDown, Link as LinkIcon } from "lucide-react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import Link from "next/link"
 import Image from "next/image"
@@ -122,6 +122,14 @@ export default function HomePage() {
                             >
                               <Brain className="w-4 h-4" />
                               題目管理
+                            </Link>
+                            <Link 
+                              href="/admin/test-links" 
+                              className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground"
+                              onClick={() => setIsDropdownOpen(false)}
+                            >
+                              <LinkIcon className="w-4 h-4" />
+                              測驗連結
                             </Link>
                           </>
                         )}
