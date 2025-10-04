@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { CheckCircle, XCircle, Brain, Lightbulb, BarChart3, ArrowLeft, Loader2 } from "lucide-react"
+import { CheckCircle, XCircle, Brain, Lightbulb, BarChart3, ArrowLeft, Loader2, Printer } from "lucide-react"
 import Link from "next/link"
 import { CreativeAnalysis } from "@/components/creative-analysis"
 import { CombinedAnalysis } from "@/components/combined-analysis"
@@ -344,24 +344,35 @@ function AdminResultDetailContent() {
       {/* Header */}
       <header className="border-b bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/admin/results">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">返回測試結果</span>
-              </Link>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/admin/results">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">返回測試結果</span>
+                </Link>
+              </Button>
+              <div className={`w-10 h-10 ${testTypeInfo.color} rounded-lg flex items-center justify-center`}>
+                <IconComponent className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-foreground">
+                  {user.name} - {testTypeInfo.name}測試結果
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  完成時間：{new Date(result.completedAt).toLocaleString("zh-TW")}
+                </p>
+              </div>
+            </div>
+            <Button 
+              onClick={() => window.print()} 
+              variant="outline" 
+              size="sm"
+              className="print:hidden"
+            >
+              <Printer className="w-4 h-4 mr-2" />
+              列印結果
             </Button>
-            <div className={`w-10 h-10 ${testTypeInfo.color} rounded-lg flex items-center justify-center`}>
-              <IconComponent className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-foreground">
-                {user.name} - {testTypeInfo.name}測試結果
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                完成時間：{new Date(result.completedAt).toLocaleString("zh-TW")}
-              </p>
-            </div>
           </div>
         </div>
       </header>

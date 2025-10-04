@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Brain, Lightbulb, BarChart3, Home, RotateCcw, TrendingUp, Target, Award } from "lucide-react"
+import { Brain, Lightbulb, BarChart3, Home, RotateCcw, TrendingUp, Target, Award, Printer } from "lucide-react"
 import Link from "next/link"
 import { getRecommendations } from "@/lib/utils/score-calculator"
 import { useAuth } from "@/lib/hooks/use-auth"
@@ -236,16 +236,27 @@ export default function CombinedResultsPage() {
       {/* Header */}
       <header className="border-b bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-primary to-accent rounded-lg flex items-center justify-center">
-              <BarChart3 className="w-6 h-6 text-white" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-primary to-accent rounded-lg flex items-center justify-center">
+                <BarChart3 className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-foreground">綜合能力測試結果</h1>
+                <p className="text-sm text-muted-foreground">
+                  完成時間：{new Date(results.completedAt).toLocaleString("zh-TW")}
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-foreground">綜合能力測試結果</h1>
-              <p className="text-sm text-muted-foreground">
-                完成時間：{new Date(results.completedAt).toLocaleString("zh-TW")}
-              </p>
-            </div>
+            <Button 
+              onClick={() => window.print()} 
+              variant="outline" 
+              size="sm"
+              className="print:hidden"
+            >
+              <Printer className="w-4 h-4 mr-2" />
+              列印結果
+            </Button>
           </div>
         </div>
       </header>
