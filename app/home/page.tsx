@@ -63,19 +63,21 @@ export default function HomePage() {
               <div className="hidden md:flex items-center gap-6">
                 {/* Navigation Links */}
                 <div className="flex items-center gap-12">
-                  <Link 
-                    href={user?.role === "admin" ? "/admin/results" : "/results"} 
-                    className="text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {user?.role === "admin" ? "所有測試結果" : "我的測試結果"}
-                  </Link>
                   {user?.role === "admin" && (
-                    <Link 
-                      href="/admin/analytics" 
-                      className="text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      部門分析
-                    </Link>
+                    <>
+                      <Link 
+                        href="/admin/results" 
+                        className="text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        所有測試結果
+                      </Link>
+                      <Link 
+                        href="/admin/analytics" 
+                        className="text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        部門分析
+                      </Link>
+                    </>
                   )}
                 </div>
                 
@@ -96,17 +98,16 @@ export default function HomePage() {
                   {isDropdownOpen && (
                     <div className="absolute right-0 top-full mt-1 w-56 bg-background border border-border rounded-md shadow-lg z-50">
                       <div className="py-1">
-                        <Link 
-                          href="/settings" 
-                          className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground"
-                          onClick={() => setIsDropdownOpen(false)}
-                        >
-                          <Settings className="w-4 h-4" />
-                          帳戶設定
-                        </Link>
                         {user?.role === "admin" && (
                           <>
-                            <div className="border-t border-border my-1"></div>
+                            <Link 
+                              href="/settings" 
+                              className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground"
+                              onClick={() => setIsDropdownOpen(false)}
+                            >
+                              <Settings className="w-4 h-4" />
+                              帳戶設定
+                            </Link>
                             <Link 
                               href="/admin/users" 
                               className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground"
@@ -131,9 +132,9 @@ export default function HomePage() {
                               <LinkIcon className="w-4 h-4" />
                               測驗連結
                             </Link>
+                            <div className="border-t border-border my-1"></div>
                           </>
                         )}
-                        <div className="border-t border-border my-1"></div>
                         <button 
                           onClick={() => {
                             handleLogout()
@@ -167,29 +168,31 @@ export default function HomePage() {
                       </div>
                       
                       {/* Navigation Links */}
-                      <Button asChild variant="ghost" className="w-full justify-start px-4">
-                        <Link href={user?.role === "admin" ? "/admin/results" : "/results"} className="flex items-center gap-2">
-                          <BarChart3 className="w-4 h-4" />
-                          {user?.role === "admin" ? "所有測試結果" : "我的測試結果"}
-                        </Link>
-                      </Button>
-                      {user?.role === "admin" && (
-                        <Button asChild variant="ghost" className="w-full justify-start px-4">
-                          <Link href="/admin/analytics" className="flex items-center gap-2">
-                            <BarChart3 className="w-4 h-4" />
-                            部門分析
-                          </Link>
-                        </Button>
-                      )}
-                      
-                      <Button asChild variant="ghost" className="w-full justify-start px-4">
-                        <Link href="/settings" className="flex items-center gap-2">
-                          <Settings className="w-4 h-4" />
-                          帳戶設定
-                        </Link>
-                      </Button>
                       {user?.role === "admin" && (
                         <>
+                          <Button asChild variant="ghost" className="w-full justify-start px-4">
+                            <Link href="/admin/results" className="flex items-center gap-2">
+                              <BarChart3 className="w-4 h-4" />
+                              所有測試結果
+                            </Link>
+                          </Button>
+                          <Button asChild variant="ghost" className="w-full justify-start px-4">
+                            <Link href="/admin/analytics" className="flex items-center gap-2">
+                              <BarChart3 className="w-4 h-4" />
+                              部門分析
+                            </Link>
+                          </Button>
+                        </>
+                      )}
+                      
+                      {user?.role === "admin" && (
+                        <>
+                          <Button asChild variant="ghost" className="w-full justify-start px-4">
+                            <Link href="/settings" className="flex items-center gap-2">
+                              <Settings className="w-4 h-4" />
+                              帳戶設定
+                            </Link>
+                          </Button>
                           <Button asChild variant="ghost" className="w-full justify-start px-4">
                             <Link href="/admin/users" className="flex items-center gap-2">
                               <Users className="w-4 h-4" />
@@ -200,6 +203,12 @@ export default function HomePage() {
                             <Link href="/admin/questions" className="flex items-center gap-2">
                               <Brain className="w-4 h-4" />
                               題目管理
+                            </Link>
+                          </Button>
+                          <Button asChild variant="ghost" className="w-full justify-start px-4">
+                            <Link href="/admin/test-links" className="flex items-center gap-2">
+                              <LinkIcon className="w-4 h-4" />
+                              測驗連結
                             </Link>
                           </Button>
                         </>
