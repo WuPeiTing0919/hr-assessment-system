@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Brain, Lightbulb, BarChart3, ArrowLeft, Search, Download, Filter, ChevronLeft, ChevronRight, Loader2, Eye } from "lucide-react"
 import Link from "next/link"
@@ -82,10 +81,6 @@ function AdminResultsContent() {
   const [testTypeFilter, setTestTypeFilter] = useState("all")
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedResult, setSelectedResult] = useState<TestResult | null>(null)
-  const [showDetailModal, setShowDetailModal] = useState(false)
-  const [detailData, setDetailData] = useState<any>(null)
-  const [isLoadingDetail, setIsLoadingDetail] = useState(false)
 
   useEffect(() => {
     loadData()
@@ -251,29 +246,9 @@ function AdminResultsContent() {
     }
   }
 
-  const handleViewDetail = async (result: TestResult) => {
-    setSelectedResult(result)
-    setShowDetailModal(true)
-    setIsLoadingDetail(true)
-
-    try {
-      const response = await fetch(`/api/admin/test-results/detail?testResultId=${result.id}&testType=${result.type}`)
-      const data = await response.json()
-
-      if (data.success) {
-        console.log('前端收到的詳細資料:', data.data)
-        console.log('題目數量:', data.data.questions?.length || 0)
-        setDetailData(data.data)
-      } else {
-        console.error('獲取詳細結果失敗:', data.message)
-        alert('獲取詳細結果失敗，請稍後再試')
-      }
-    } catch (error) {
-      console.error('獲取詳細結果錯誤:', error)
-      alert('獲取詳細結果時發生錯誤，請稍後再試')
-    } finally {
-      setIsLoadingDetail(false)
-    }
+  const handleViewDetail = (result: TestResult) => {
+    // 跳轉到詳細頁面，而不是彈出視窗
+    window.location.href = `/admin/results/detail/${result.id}?testType=${result.type}`
   }
 
   return (
@@ -642,204 +617,6 @@ function AdminResultsContent() {
         </div>
       </div>
 
-      {/* 詳細結果模態框 */}
-      <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto w-[95vw] max-w-[95vw] sm:w-auto sm:max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>測驗詳細結果</DialogTitle>
-            <DialogDescription>
-              {selectedResult && `${selectedResult.userName} - ${getTestTypeInfo(selectedResult.type).name}`}
-            </DialogDescription>
-          </DialogHeader>
-          
-          {isLoadingDetail ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin mr-2" />
-              <span>載入詳細結果中...</span>
-            </div>
-          ) : detailData ? (
-            <div className="space-y-6">
-              {/* 基本資訊 */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>基本資訊</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">用戶姓名</label>
-                      <p className="text-sm">{detailData.user.name}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">用戶郵箱</label>
-                      <p className="text-sm">{detailData.user.email}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">部門</label>
-                      <p className="text-sm">{detailData.user.department}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">完成時間</label>
-                      <p className="text-sm">{formatDate(detailData.result.completedAt)}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">總分</label>
-                      <p className="text-sm font-bold text-lg">{detailData.result.score}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">等級</label>
-                      <Badge className={`${getScoreLevel(detailData.result.score).color} text-white`}>
-                        {getScoreLevel(detailData.result.score).level}
-                      </Badge>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* 題目詳情 */}
-              {detailData.questions && detailData.questions.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>答題詳情</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-6">
-                      {/* 邏輯思維題目 */}
-                      {detailData.questions.filter((q: any) => q.type === 'logic').length > 0 && (
-                        <div>
-                          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                            <Brain className="w-5 h-5 text-blue-600" />
-                            邏輯思維題目
-                          </h3>
-                          <div className="space-y-4">
-                            {detailData.questions
-                              .filter((q: any) => q.type === 'logic')
-                              .map((question: any, index: number) => (
-                              <div key={index} className="border rounded-lg p-3 sm:p-4 bg-blue-50/30">
-                                <div className="flex items-start justify-between mb-2 sm:mb-3">
-                                  <h4 className="font-medium text-sm sm:text-base">第 {index + 1} 題</h4>
-                                  <Badge variant={question.isCorrect ? "default" : "destructive"} className="text-xs">
-                                    {question.isCorrect ? "正確" : "錯誤"}
-                                  </Badge>
-                                </div>
-                                
-                                <div className="space-y-2 sm:space-y-3">
-                                  <div>
-                                    <label className="text-sm font-medium text-muted-foreground">題目內容</label>
-                                    <p className="text-xs sm:text-sm mt-1 break-words">{question.question}</p>
-                                  </div>
-
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                                    <div>
-                                      <label className="text-sm font-medium text-muted-foreground">選項</label>
-                                      <div className="space-y-1 mt-1">
-                                        {question.option_a && <p className="text-xs sm:text-sm break-words">A. {question.option_a}</p>}
-                                        {question.option_b && <p className="text-xs sm:text-sm break-words">B. {question.option_b}</p>}
-                                        {question.option_c && <p className="text-xs sm:text-sm break-words">C. {question.option_c}</p>}
-                                        {question.option_d && <p className="text-xs sm:text-sm break-words">D. {question.option_d}</p>}
-                                        {question.option_e && <p className="text-xs sm:text-sm break-words">E. {question.option_e}</p>}
-                                      </div>
-                                    </div>
-                                    <div>
-                                      <label className="text-sm font-medium text-muted-foreground">答案</label>
-                                      <div className="space-y-1 mt-1">
-                                        <p className="text-xs sm:text-sm">用戶答案: <span className="font-bold">{question.userAnswer}</span></p>
-                                        <p className="text-xs sm:text-sm">正確答案: <span className="font-bold text-green-600">{question.correctAnswer}</span></p>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  {question.explanation && (
-                                    <div>
-                                      <label className="text-sm font-medium text-muted-foreground">解釋</label>
-                                      <p className="text-xs sm:text-sm mt-1 break-words">{question.explanation}</p>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* 創意能力題目 */}
-                      {detailData.questions.filter((q: any) => q.type === 'creative').length > 0 && (
-                        <div>
-                          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                            <Lightbulb className="w-5 h-5 text-green-600" />
-                            創意能力題目
-                          </h3>
-                          <div className="space-y-4">
-                            {detailData.questions
-                              .filter((q: any) => q.type === 'creative')
-                              .map((question: any, index: number) => (
-                              <div key={index} className="border rounded-lg p-3 sm:p-4 bg-green-50/30">
-                                <div className="flex items-start justify-between mb-2 sm:mb-3">
-                                  <h4 className="font-medium text-sm sm:text-base">第 {index + 1} 題</h4>
-                                  <Badge variant="outline" className="text-green-600 border-green-600 text-xs">
-                                    {question.score} 分
-                                  </Badge>
-                                </div>
-                                
-                                <div className="space-y-2 sm:space-y-3">
-                                  <div>
-                                    <label className="text-sm font-medium text-muted-foreground">題目內容</label>
-                                    <p className="text-xs sm:text-sm mt-1 break-words">{question.statement}</p>
-                                  </div>
-
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                                    <div>
-                                      <label className="text-sm font-medium text-muted-foreground">用戶答案</label>
-                                      <p className="text-xs sm:text-sm mt-1">{question.userAnswer}</p>
-                                    </div>
-                                    <div>
-                                      <label className="text-sm font-medium text-muted-foreground">得分</label>
-                                      <p className="text-xs sm:text-sm mt-1 font-bold">{question.score} 分</p>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* 綜合測試詳細分析 */}
-              {detailData.result.type === 'combined' && detailData.result.details && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>綜合能力分析</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="text-center p-4 bg-blue-50 rounded-lg">
-                        <h4 className="font-medium text-blue-800">邏輯思維</h4>
-                        <p className="text-2xl font-bold text-blue-600">{detailData.result.details.logicScore}</p>
-                      </div>
-                      <div className="text-center p-4 bg-green-50 rounded-lg">
-                        <h4 className="font-medium text-green-800">創意能力</h4>
-                        <p className="text-2xl font-bold text-green-600">{detailData.result.details.creativeScore}</p>
-                      </div>
-                      <div className="text-center p-4 bg-purple-50 rounded-lg">
-                        <h4 className="font-medium text-purple-800">能力平衡</h4>
-                        <p className="text-2xl font-bold text-purple-600">{detailData.result.details.abilityBalance}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              無法載入詳細結果
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
